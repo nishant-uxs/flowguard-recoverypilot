@@ -10,7 +10,7 @@
 - Vitest for tests
 - ESLint and Prettier for quality gates
 
-## Planned boundaries
+## Layer boundaries
 
 ```text
 apps/web
@@ -26,6 +26,30 @@ apps/web
 
 The M0 API exposes only a health endpoint. No ML, LLM, Razorpay or financial
 action code exists at this milestone.
+
+## System architecture
+
+```mermaid
+flowchart LR
+    A[Payment Events] --> B[Temporal Detection]
+    B --> C[Recovery Opportunity Scorer]
+    C --> D[RecoveryOrchestrator]
+    D --> E[Deterministic Policy]
+    E -->|Await approval| F[Merchant Approval]
+    E -->|Reject / Abstain| G[Recovery Service + Audit]
+    F --> G
+    G --> H[Simulation Executor]
+    G --> I[Razorpay TEST MODE Adapter]
+    H --> J[Verification]
+    I --> J
+    J --> K[Recovery Outcome]
+    K --> G
+    G --> L[Control Tower API]
+    L --> M[React Control Tower]
+```
+
+The simulation and Razorpay adapters implement the same executor boundary; only
+the simulation adapter is selected by the default demo.
 
 ## M1 domain boundary
 
@@ -47,7 +71,7 @@ observable failure category; non-failed events must not carry one.
 
 ## Runtime decision boundary
 
-The final runtime will use this one-way control flow:
+The runtime uses this one-way control flow:
 
 ```text
 model prediction
@@ -88,6 +112,28 @@ This prevents future degradation labels and outcomes from entering the event
 contract. The generator uses a fixed seed, random non-semantic IDs and
 merchant-aware profile assignment so repeated runs are identical without
 encoding the label in an identifier.
+
+## Data flow
+
+```mermaid
+flowchart TD
+    A[Observation-time PaymentEvent] --> B[20-minute Feature Window]
+    B --> C[Detector Risk Estimate]
+    C --> D[RecoveryCandidate]
+    D --> E[Opportunity Probability + Expected Value]
+    E --> F[Policy Decision]
+    F -->|Approved| G[Merchant Approval]
+    G --> H[One Payment-link Attempt]
+    H --> I[Provider Reference]
+    I --> J[Paid Status + amount_paid]
+    J --> K[Verified Recovery Outcome]
+    F -->|Rejected / Abstained| L[Terminal Safe Stop]
+    K --> M[Append-only Audit]
+    L --> M
+```
+
+Future labels, hidden counterfactual outcomes and latent propensity enter only
+the evaluation protocols; they do not enter runtime feature construction.
 
 ## M3 baseline boundary
 
@@ -171,6 +217,36 @@ The implementation follows Razorpay's documented [Payment Links API](https://raz
 and [Payment Link webhook events](https://razorpay.com/docs/webhooks/payment-links/);
 real credentials and merchant approval are required for a live TEST MODE run.
 
+## Recovery state machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> DETECTED
+    DETECTED --> SCORED
+    SCORED --> POLICY_APPROVED
+    SCORED --> ABSTAINED
+    SCORED --> REJECTED
+    POLICY_APPROVED --> AWAITING_MERCHANT_APPROVAL
+    POLICY_APPROVED --> APPROVED
+    AWAITING_MERCHANT_APPROVAL --> APPROVED
+    AWAITING_MERCHANT_APPROVAL --> REJECTED
+    AWAITING_MERCHANT_APPROVAL --> ABSTAINED
+    AWAITING_MERCHANT_APPROVAL --> EXPIRED
+    APPROVED --> EXECUTING
+    EXECUTING --> PENDING_VERIFICATION
+    EXECUTING --> RECOVERED
+    EXECUTING --> FAILED
+    EXECUTING --> EXPIRED
+    EXECUTING --> ALREADY_RECOVERED
+    PENDING_VERIFICATION --> RECOVERED
+    PENDING_VERIFICATION --> FAILED
+    PENDING_VERIFICATION --> EXPIRED
+    PENDING_VERIFICATION --> ALREADY_RECOVERED
+```
+
+All terminal states are auditable. Invalid transitions throw before an
+executor can be called.
+
 The application-facing audit ledger is append-only from the service API and
 records candidate, recommendation, policy, approval, action, verification,
 outcome and duplicate events, including source event ID, payment, merchant,
@@ -219,6 +295,51 @@ discarded in favor of a deterministic explanation.
 M7 does not add an autonomous agent loop. Simulation remains the default and
 the Razorpay adapter requires explicit TEST MODE credentials. See
 `docs/agent-architecture.md` for the state and trust-boundary diagrams.
+
+## AI and policy boundary
+
+```mermaid
+flowchart LR
+    A[Temporal Signals] --> B[ML Detection]
+    B --> C[Opportunity Model]
+    C --> D[Risk / Probability / Expected Value]
+    D --> E[Deterministic Policy]
+    E --> F{Policy allows?}
+    F -->|No| G[Abstain or Reject]
+    F -->|Yes| H[Merchant Approval]
+    C --> I[Explanation-only LLM]
+    I --> H
+    H --> J[Bounded Executor]
+    J --> K[Verification]
+    K --> L[Audit + Outcome]
+```
+
+ML estimates; deterministic policy authorizes; the LLM explains; the executor
+acts; verification proves recovery. No LLM output is consumed as an action or
+authorization command.
+
+## Recovery verification
+
+```mermaid
+sequenceDiagram
+    participant O as Orchestrator
+    participant E as Executor
+    participant P as Payment Provider
+    participant V as Verifier
+    participant A as Audit Ledger
+    O->>E: create one bounded payment-link attempt
+    E->>P: create link with idempotency reference
+    P-->>E: provider reference
+    E-->>O: intervention created
+    O->>V: fetch and verify provider state
+    V->>P: read status and amount_paid
+    P-->>V: paid state or non-paid state
+    V-->>O: RECOVERED only when paid and amount is valid
+    O->>A: record action, verification and outcome
+```
+
+Link creation is an intervention. Only verified paid status and bounded
+`amount_paid` produce recovered value.
 
 ## M8 demo boundary
 

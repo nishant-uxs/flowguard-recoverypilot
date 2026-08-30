@@ -1,4 +1,4 @@
-# M9 Hostile Judge Audit
+# M9 Hostile Judge Audit + M10 Submission Polish
 
 ## 1. Executive verdict
 
@@ -147,6 +147,11 @@ objections are:
 - Added [judge questions](judge-questions.md), the
   [30-second pitch](30-second-pitch.md), and this audit.
 - Updated the judge script to show model signal before policy.
+- Reworked the Control Tower around a compact fintech design system, a
+  horizontal recovery pipeline, restrained state transitions and reduced-motion
+  support.
+- Validated external Razorpay response shapes and return a clear `400` for
+  malformed demo scenario requests.
 
 ## 12. Remaining accepted limitations
 
