@@ -27,6 +27,24 @@ apps/web
 The M0 API exposes only a health endpoint. No ML, LLM, Razorpay or financial
 action code exists at this milestone.
 
+## M1 domain boundary
+
+`packages/domain` owns the runtime-validated raw event contract. It currently
+contains only:
+
+- `PaymentEvent`: one observed payment-attempt event.
+- `MerchantContext`: the merchant identifier used to group temporal streams.
+- `PaymentMethodSegment`: a constrained method/segment pair.
+
+The event schema is intentionally observation-time only. It includes timestamp,
+payment outcome, value and retry/latency context, but excludes recovery success,
+recovered value, future failure counts and degradation labels. Those are
+derived or outcome data and would leak future information into detection.
+
+Validation is strict: identifiers, timestamps, currency, status, method/segment,
+amount and retry count are checked at the boundary. A failed event must carry an
+observable failure category; non-failed events must not carry one.
+
 ## Runtime decision boundary
 
 The final runtime will use this one-way control flow:

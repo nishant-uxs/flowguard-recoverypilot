@@ -1,18 +1,13 @@
 {
-  "name": "@flowguard/api",
+  "name": "@flowguard/domain",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@fastify/cors": "latest",
-    "@flowguard/domain": "0.1.0",
-    "fastify": "latest",
     "zod": "latest"
   }
 }

@@ -38,6 +38,25 @@ Payment events
   -> batch evaluation
 ```
 
+## M1 event model
+
+M1 defines the smallest raw event contract needed to build temporal windows:
+
+- `eventId`: unique event identifier for traceability.
+- `merchantId`: merchant grouping key.
+- `paymentId` and `attemptId`: payment and attempt correlation keys.
+- `timestamp`: offset-aware ISO timestamp observed at event time.
+- `paymentMethodSegment`: constrained payment method plus segment, so windows do not mix incompatible streams.
+- `amount` and `currency`: observable transaction value.
+- `status`: `initiated`, `pending`, `succeeded`, `failed` or `cancelled`.
+- `failureCategory`: observable failure reason, required only for failed events.
+- `latencyMs`: observed attempt latency when available.
+- `retryCount`: retries already observed at event time.
+
+The schema rejects unknown fields and future labels. Recovery success,
+recovered value, degradation labels, future failure counts and intervention
+outcomes belong to evaluation/outcome records, not raw payment events.
+
 ## AI boundary
 
 The temporal ML model owns quantitative predictions:
