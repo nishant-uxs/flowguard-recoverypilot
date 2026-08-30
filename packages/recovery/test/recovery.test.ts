@@ -252,6 +252,24 @@ describe('Razorpay TEST MODE adapter', () => {
     ).toThrow('requires an rzp_test_ key');
   });
 
+  it('fails closed on malformed provider responses', async () => {
+    const executor = new RazorpayTestRecoveryExecutor({
+      keyId: 'rzp_test_demo',
+      keySecret: 'test_secret',
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        text: async () => '{}',
+      }),
+    });
+    const service = new RecoveryService({ executor, clock: () => fixedNow });
+
+    const result = await service.submit(candidate(), { merchantApproval: 'approved' });
+
+    expect(result.outcome.status).toBe('FAILED');
+    expect(result.outcome.recoveredAmountPaise).toBe(0);
+  });
+
   it('uses the configured safety limits rather than silently changing them', () => {
     expect(DEFAULT_POLICY_CONFIG).toMatchObject({
       minimumRiskScore: 0.55,

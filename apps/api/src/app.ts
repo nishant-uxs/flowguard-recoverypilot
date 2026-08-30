@@ -21,10 +21,17 @@ export function buildApp() {
     return demo.state();
   });
 
-  app.post('/demo/scenario', async (request) => {
-    const body = z.object({ scenario: demoScenarioSchema }).strict().parse(request.body);
-    await demo.reset(body.scenario);
-    return demo.state();
+  app.post('/demo/scenario', async (request, reply) => {
+    try {
+      const body = z.object({ scenario: demoScenarioSchema }).strict().parse(request.body);
+      await demo.reset(body.scenario);
+      return demo.state();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({ error: 'invalid demo scenario', issues: error.issues });
+      }
+      throw error;
+    }
   });
 
   app.post('/demo/reset', async () => {

@@ -8,6 +8,19 @@ const identifierSchema = z
 const timestampSchema = z.string().datetime({ offset: true });
 const boundedProbability = z.number().finite().min(0).max(1);
 const moneySchema = z.number().finite().int().nonnegative();
+const paymentLinkCreationResponseSchema = z
+  .object({
+    id: z.string().min(1),
+    short_url: z.string().url().optional(),
+  })
+  .passthrough();
+const paymentLinkStatusResponseSchema = z
+  .object({
+    status: z.string().optional(),
+    amount_paid: z.number().finite().nonnegative().optional(),
+    amount: z.number().finite().nonnegative().optional(),
+  })
+  .passthrough();
 
 export const recoveryActionTypeSchema = z.literal('payment_link');
 export type RecoveryActionType = z.infer<typeof recoveryActionTypeSchema>;
@@ -429,11 +442,15 @@ export class RazorpayTestRecoveryExecutor implements RecoveryExecutor {
         },
       }),
     });
-    const body = JSON.parse(await response.text()) as { id?: string; short_url?: string };
-    if (!response.ok || body.id === undefined) {
+    const body = paymentLinkCreationResponseSchema.safeParse(JSON.parse(await response.text()));
+    if (!response.ok || !body.success) {
       throw new Error(`Razorpay payment link creation failed with HTTP ${response.status}`);
     }
-    return { status: 'created', providerReference: body.id, actionUrl: body.short_url };
+    return {
+      status: 'created',
+      providerReference: body.data.id,
+      actionUrl: body.data.short_url,
+    };
   }
 
   async verifyRecovery(
@@ -452,33 +469,30 @@ export class RazorpayTestRecoveryExecutor implements RecoveryExecutor {
       `${this.baseUrl}/payment_links/${creation.providerReference}`,
       { method: 'GET', headers: this.headers() },
     );
-    const body = JSON.parse(await response.text()) as {
-      status?: string;
-      amount_paid?: number;
-      amount?: number;
-    };
+    const body = paymentLinkStatusResponseSchema.safeParse(JSON.parse(await response.text()));
     if (!response.ok)
       throw new Error(`Razorpay payment link verification failed with HTTP ${response.status}`);
-    if (body.status === 'paid' && typeof body.amount_paid === 'number') {
+    if (!body.success) throw new Error('Razorpay payment link verification returned invalid JSON');
+    if (body.data.status === 'paid' && body.data.amount_paid !== undefined) {
       return {
         status: 'recovered',
-        recoveredAmountPaise: Math.min(candidate.recoverableAmountPaise, body.amount_paid),
+        recoveredAmountPaise: Math.min(candidate.recoverableAmountPaise, body.data.amount_paid),
         reason: `Razorpay TEST MODE payment link ${creation.providerReference} is paid`,
         verificationMethod: 'razorpay_payment_link_fetch',
       };
     }
-    if (body.status === 'expired' || body.status === 'cancelled') {
+    if (body.data.status === 'expired' || body.data.status === 'cancelled') {
       return {
         status: 'expired',
         recoveredAmountPaise: 0,
-        reason: `payment link status is ${body.status}`,
+        reason: `payment link status is ${body.data.status}`,
         verificationMethod: 'razorpay_payment_link_fetch',
       };
     }
     return {
       status: 'pending',
       recoveredAmountPaise: 0,
-      reason: `payment link status is ${body.status ?? 'unknown'} for action ${action.actionId}`,
+      reason: `payment link status is ${body.data.status ?? 'unknown'} for action ${action.actionId}`,
       verificationMethod: 'razorpay_payment_link_fetch',
     };
   }

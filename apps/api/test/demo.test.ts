@@ -46,6 +46,20 @@ describe('M8 deterministic demo API', () => {
     await app.close();
   });
 
+  it('returns a client error for an invalid scenario payload', async () => {
+    const app = buildApp();
+    const response = await app.inject({
+      method: 'POST',
+      url: '/demo/scenario',
+      payload: { scenario: 'execute_payment' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error).toBe('invalid demo scenario');
+
+    await app.close();
+  });
+
   it('resets deterministic failure scenarios and records safe stops', async () => {
     const app = buildApp();
     const scenarios = [
