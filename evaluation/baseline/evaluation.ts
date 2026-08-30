@@ -213,6 +213,15 @@ export function evaluateBaseline(
   return metricFor(dataset, runBaseline(observations, config), period, merchantIds);
 }
 
+export function evaluateDetectorRun(
+  dataset: GeneratedDataset,
+  run: DetectorRun,
+  period: EvaluationPeriod,
+  merchantIds = new Set(dataset.metadata.merchantIds),
+): EvaluationMetrics {
+  return metricFor(dataset, run, period, merchantIds);
+}
+
 export function evaluateNaive(
   dataset: GeneratedDataset,
   observations: Map<string, WindowObservation[]>,
