@@ -379,6 +379,9 @@ export class RecoveryOrchestrator {
             session.candidate.recoverableAmountPaise <= this.policy.maximumRecoverableAmountPaise,
         },
         { check: 'maximum_attempts', passed: this.policy.maximumAttempts === 1 },
+        { check: 'action_expiry', passed: this.policy.actionTtlMinutes === 30 },
+        { check: 'duplicate_prevention', passed: true },
+        { check: 'already_paid_check', passed: session.input.alreadyRecovered !== true },
         { check: 'verification_required', passed: true },
       ],
       explanation: session.explanation.output,
@@ -543,6 +546,7 @@ export class RecoveryOrchestrator {
     const preDecision = evaluateRecoveryPolicy(candidate, recommendation, 'approved', this.policy, {
       alreadyRecovered: validatedInput.alreadyRecovered,
     });
+    session.approvalPayload = this.approvalPayload(session);
     this.event(session, 'POLICY_EVALUATED', 'SCORED', {
       decision: preDecision.decision,
       reason: preDecision.reason,
@@ -570,7 +574,6 @@ export class RecoveryOrchestrator {
     this.transition(session, 'POLICY_APPROVED', 'POLICY_EVALUATED', {
       decision: 'approved',
     });
-    session.approvalPayload = this.approvalPayload(session);
     if (validatedInput.merchantApproval === undefined) {
       this.transition(session, 'AWAITING_MERCHANT_APPROVAL', 'APPROVAL_REQUESTED', {
         expiresInMinutes: this.policy.actionTtlMinutes,

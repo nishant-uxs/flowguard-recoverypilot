@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspace @flowguard/recovery && npm run build --workspaces",
     "dev:api": "npm --workspace @flowguard/api run dev",
     "dev:web": "npm --workspace @flowguard/web run dev",
     "format": "prettier --write .",
@@ -21,8 +21,8 @@
     "evaluate:recovery": "tsx evaluation/recovery/batch.ts",
     "evaluate:recovery-value": "tsx evaluation/recovery-value/run-value-evaluation.ts",
     "lint": "eslint .",
-    "test": "vitest run",
-    "typecheck": "npm run typecheck --workspaces && npm run typecheck:evaluation",
+    "test": "npm run build --workspace @flowguard/recovery && vitest run",
+    "typecheck": "npm run build --workspace @flowguard/recovery && npm run typecheck --workspaces && npm run typecheck:evaluation",
     "typecheck:evaluation": "tsc --noEmit -p evaluation/tsconfig.json",
     "validate-data": "tsx evaluation/scripts/validate-data.ts"
   },

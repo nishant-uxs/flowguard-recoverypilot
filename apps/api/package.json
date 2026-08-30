@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "predev": "npm run build --workspace @flowguard/recovery",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -12,6 +13,7 @@
   "dependencies": {
     "@fastify/cors": "latest",
     "@flowguard/domain": "0.1.0",
+    "@flowguard/recovery": "^0.1.0",
     "fastify": "latest",
     "zod": "latest"
   }
