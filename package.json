@@ -1,0 +1,33 @@
+{
+  "name": "flowguard-recoverypilot",
+  "private": true,
+  "version": "0.1.0",
+  "description": "FlowGuard RecoveryPilot 2.0 for the Razorpay AI Buildathon",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev:api": "npm --workspace @flowguard/api run dev",
+    "dev:web": "npm --workspace @flowguard/web run dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "devDependencies": {
+    "@eslint/js": "latest",
+    "@types/node": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest",
+    "vitest": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
