@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { generateDataset } from '../generator/temporal-dataset.js';
 import { periodFromDataset } from '../baseline/evaluation.js';
-import { calibrationMetrics } from './calibration.js';
+import { applyPlattScaling, calibrationMetrics, fitPlattScaling } from './calibration.js';
 import { buildFeatureDataset, splitSequences } from './features.js';
 import {
   evaluateModelPredictions,
@@ -114,5 +114,48 @@ describe('simple temporal ML baseline', () => {
 
     expect(metrics.brierScore).toBeCloseTo(0.01);
     expect(metrics.expectedCalibrationError).toBeCloseTo(0.1);
+  });
+
+  it('fits and applies Platt scaling using validation predictions only', () => {
+    const validation = [
+      {
+        merchantId: 'mrc_001',
+        endWindow: 1,
+        timestamp: '2026-08-01T00:00:00Z',
+        probability: 0.6,
+        label: 1 as const,
+      },
+      {
+        merchantId: 'mrc_001',
+        endWindow: 2,
+        timestamp: '2026-08-01T00:05:00Z',
+        probability: 0.4,
+        label: 0 as const,
+      },
+      {
+        merchantId: 'mrc_001',
+        endWindow: 3,
+        timestamp: '2026-08-01T00:10:00Z',
+        probability: 0.55,
+        label: 1 as const,
+      },
+      {
+        merchantId: 'mrc_001',
+        endWindow: 4,
+        timestamp: '2026-08-01T00:15:00Z',
+        probability: 0.45,
+        label: 0 as const,
+      },
+    ];
+    const scaling = fitPlattScaling(validation);
+    const calibrated = applyPlattScaling(validation, scaling);
+
+    expect(scaling.validationExamples).toBe(validation.length);
+    expect(
+      calibrated.every((prediction) => prediction.probability > 0 && prediction.probability < 1),
+    ).toBe(true);
+    expect(calibrationMetrics(calibrated).brierScore).toBeLessThanOrEqual(
+      calibrationMetrics(validation).brierScore + 0.01,
+    );
   });
 });
