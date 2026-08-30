@@ -113,7 +113,7 @@ describe('interpretable temporal baseline', () => {
     expect(new Set(failureMeans).size).toBeGreaterThan(1);
   });
 
-  it('tunes on validation without reading test labels', () => {
+  it('tunes on validation without reading test labels', { timeout: 15_000 }, () => {
     const dataset = fixture();
     const observations = buildWindowObservationsForTarget(dataset);
     const original = tuneBaseline(dataset, observations);

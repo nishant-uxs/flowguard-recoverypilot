@@ -9,7 +9,7 @@ import {
   evaluateRecoveryPolicy,
   recoveryCandidateSchema,
 } from '../src/index.js';
-import type { RecoveryCandidate } from '../src/index.js';
+import type { RecoveryCandidate, RecoveryExecutor } from '../src/index.js';
 
 const fixedNow = '2026-08-30T10:00:00.000Z';
 
@@ -110,6 +110,42 @@ describe('recovery service end-to-end semantics', () => {
     expect(second.outcome.recoveredAmountPaise).toBe(1_000);
     expect(executor.createCalls).toBe(1);
     expect(service.listAuditEvents().at(-1)?.eventType).toBe('duplicate_prevented');
+  });
+
+  it('coalesces concurrent identical submissions into one logical action', async () => {
+    let releaseCreation!: () => void;
+    const creationReleased = new Promise<void>((resolve) => {
+      releaseCreation = resolve;
+    });
+    let createCalls = 0;
+    const executor: RecoveryExecutor = {
+      async createPaymentLink() {
+        createCalls += 1;
+        await creationReleased;
+        return { status: 'created', providerReference: 'plink_concurrent' };
+      },
+      async verifyRecovery() {
+        return {
+          status: 'recovered',
+          recoveredAmountPaise: 1_000,
+          reason: 'concurrent simulation verified',
+          verificationMethod: 'simulation',
+        };
+      },
+    };
+    const service = new RecoveryService({ executor, clock: () => fixedNow });
+    const first = service.submit(candidate(), { merchantApproval: 'approved' });
+    const second = service.submit(candidate({ candidateId: 'candidate_002' }), {
+      merchantApproval: 'approved',
+    });
+
+    releaseCreation();
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+
+    expect(createCalls).toBe(1);
+    expect(firstResult.action.actionId).toBe(secondResult.action.actionId);
+    expect(firstResult.outcome.status).toBe('RECOVERED');
+    expect(secondResult.outcome.status).toBe('RECOVERED');
   });
 
   it.each([

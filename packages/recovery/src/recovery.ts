@@ -527,6 +527,7 @@ export class RecoveryService {
   private readonly actions = new Map<string, RecoveryAction>();
   private readonly outcomes = new Map<string, RecoveryOutcome>();
   private readonly lastActionAtByMerchant = new Map<string, string>();
+  private readonly inFlightByKey = new Map<string, Promise<RecoveryJourney>>();
   private readonly audit: RecoveryAuditEvent[] = [];
   private readonly executor: RecoveryExecutor;
   private readonly policy: PolicyConfig;
@@ -704,6 +705,28 @@ export class RecoveryService {
     },
   ): Promise<RecoveryJourney> {
     const candidate = recoveryCandidateSchema.parse(candidateInput);
+    const idempotencyKey = recoveryIdempotencyKey(candidate);
+    const inFlight = this.inFlightByKey.get(idempotencyKey);
+    if (inFlight !== undefined) return inFlight;
+    const submission = this.submitOnce(candidate, options);
+    this.inFlightByKey.set(idempotencyKey, submission);
+    try {
+      return await submission;
+    } finally {
+      if (this.inFlightByKey.get(idempotencyKey) === submission) {
+        this.inFlightByKey.delete(idempotencyKey);
+      }
+    }
+  }
+
+  private async submitOnce(
+    candidate: RecoveryCandidate,
+    options: {
+      merchantApproval: MerchantApproval;
+      alreadyRecovered?: boolean;
+      now?: string;
+    },
+  ): Promise<RecoveryJourney> {
     const now = options.now ?? this.clock();
     const recommendation = buildRecoveryRecommendation(candidate);
     const idempotencyKey = recoveryIdempotencyKey(candidate);
