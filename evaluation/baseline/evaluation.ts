@@ -41,7 +41,9 @@ export type EvaluationMetrics = {
   alertsPerMerchant: number;
   duplicateDebouncedSignals: number;
   prePeriodAlertsUsed: number;
+  p25LeadTimeMinutes: number | null;
   medianLeadTimeMinutes: number | null;
+  p75LeadTimeMinutes: number | null;
   meanLeadTimeMinutes: number | null;
   targetLeadTimeAttainment: number;
   stableWindows: number;
@@ -67,6 +69,15 @@ function median(values: number[]): number | null {
   if (values.length === 0) return null;
   const sorted = [...values].sort((first, second) => first - second);
   return sorted[Math.floor(sorted.length / 2)]!;
+}
+
+function percentile(values: number[], percentileValue: number): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((first, second) => first - second);
+  const position = (sorted.length - 1) * percentileValue;
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+  return sorted[lower]! + (sorted[upper]! - sorted[lower]!) * (position - lower);
 }
 
 function mean(values: number[]): number | null {
@@ -191,7 +202,9 @@ function metricFor(
     alertsPerMerchant: ratio(scopedAlerts.length, merchantIds.size),
     duplicateDebouncedSignals: run.debouncedSignals,
     prePeriodAlertsUsed: candidateAlerts.length - scopedAlerts.length,
+    p25LeadTimeMinutes: percentile(leadTimes, 0.25),
     medianLeadTimeMinutes: median(leadTimes),
+    p75LeadTimeMinutes: percentile(leadTimes, 0.75),
     meanLeadTimeMinutes: mean(leadTimes),
     targetLeadTimeAttainment: ratio(
       leadTimes.filter((leadTime) => leadTime >= dataset.truth.targetSpec.leadTimeTargetMinutes)

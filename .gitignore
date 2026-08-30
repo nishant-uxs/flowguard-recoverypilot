@@ -9,3 +9,7 @@ evaluation/datasets/generated/
 evaluation/datasets/sanity-report.json
 evaluation/results/baseline.json
 evaluation/results/baseline-report.md
+evaluation/results/ml-experiment.json
+evaluation/results/ml-experiment-report.md
+evaluation/results/ml-neural-input.json
+evaluation/results/ml-neural-output.json

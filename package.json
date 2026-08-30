@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "generate-data": "tsx evaluation/scripts/generate-data.ts",
     "evaluate:baseline": "tsx evaluation/baseline/run-baseline.ts",
+    "evaluate:ml": "tsx evaluation/ml/run-experiment.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces && npm run typecheck:evaluation",
