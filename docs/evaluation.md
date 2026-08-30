@@ -194,6 +194,11 @@ randomized episode timing, multiple merchant traffic classes and repeated
 episodes for known merchants. `npm run generate:generalization-data` exports
 the ignored v2 dataset.
 
+The explicit family manifest is TRAIN=A/B/C, VALIDATION=A/B/C with new
+parameters, SHIFTED_TEST=D/E/F, and STRESS_TEST=G/H/I/J. The validation family
+reuses mechanism names only with known merchants and is not mixed with the
+merchant-disjoint shifted test.
+
 The v2 sequence splitter purges each boundary by the four-window observation
 length, so no raw input window is reused between train, validation and test.
 The original M4 splitter is intentionally unchanged for v1 reproducibility.
