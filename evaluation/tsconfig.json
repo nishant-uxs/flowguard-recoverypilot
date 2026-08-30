@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["generator/**/*.ts", "scripts/**/*.ts"]
+  "include": ["baseline/**/*.ts", "generator/**/*.ts", "scripts/**/*.ts"]
 }

@@ -88,3 +88,16 @@ This prevents future degradation labels and outcomes from entering the event
 contract. The generator uses a fixed seed, random non-semantic IDs and
 merchant-aware profile assignment so repeated runs are identical without
 encoding the label in an identifier.
+
+## M3 baseline boundary
+
+The baseline is intentionally interpretable. It calibrates each merchant from
+the first 12 target-segment windows, transforms rolling failure-rate and
+latency deviations into a positive EWMA score, and accumulates signed
+deviations with one-sided CUSUM. Persistence, reset and cooldown logic emit
+one episode-level alert instead of one alert per noisy window.
+
+The detector receives only chronologically available observations. Truth
+intervals are used by the evaluation layer only, never by the detector. The
+naive comparator is a global rolling failure-rate threshold. Both use the same
+episode-level evaluation protocol and untouched test period.

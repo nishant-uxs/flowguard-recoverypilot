@@ -93,3 +93,46 @@ status/failure rates, latency and amount summaries, degradation durations,
 missing optional values, duplicates, chronological violations and a
 single-feature trivial-probe result. It does not implement EWMA/CUSUM, ML,
 calibration or business recovery metrics.
+
+## M3 baseline
+
+The baseline consumes only the target UPI Intent stream. It aggregates each
+five-minute window and uses a three-window rolling failure rate and weighted
+latency average. The rolling failure rate uses a fixed four-attempt, 4% prior
+to reduce extreme small-sample swings without using future data.
+
+For each merchant, the first 12 windows are the historical warmup baseline.
+They are used to calculate a merchant-specific mean and standard deviation for
+the two rolling features. No degraded-period data is used in that calibration.
+
+The detector uses positive deviations for an EWMA:
+
+```text
+EWMA_t = alpha * score_t + (1 - alpha) * EWMA_(t-1)
+```
+
+It also uses a one-sided upward CUSUM over the signed weighted deviation:
+
+```text
+CUSUM_t = max(0, CUSUM_(t-1) + deviation_t - reference)
+```
+
+An alert requires the configured EWMA or CUSUM threshold for the configured
+number of consecutive windows. A three-window recovery reset, six-window
+cooldown and in-episode state debounce repeated signals into one episode.
+
+Candidate alpha, thresholds and persistence are selected on validation only.
+The test period is untouched until the final run. Metrics are episode-level:
+precision, recall, F1, false-alert rate in stable windows, alert volume,
+detected/missed episodes and detection lead time. A global rolling failure-rate
+threshold is reported as a naive comparator.
+
+Run the baseline with:
+
+```bash
+npm run evaluate:baseline
+```
+
+This writes ignored machine-readable and human-readable artifacts to
+`evaluation/results/`. The baseline is intentionally interpretable and exists
+to establish whether more complex ML provides measurable incremental value.

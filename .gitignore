@@ -7,3 +7,5 @@ coverage/
 .DS_Store
 evaluation/datasets/generated/
 evaluation/datasets/sanity-report.json
+evaluation/results/baseline.json
+evaluation/results/baseline-report.md

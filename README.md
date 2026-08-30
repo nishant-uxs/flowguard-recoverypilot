@@ -6,7 +6,8 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-Foundation milestone (M0) is complete. ML, LLM, Razorpay integration and the
+M3 is complete: the reproducible temporal dataset and interpretable
+EWMA/CUSUM baseline are available. ML, LLM, Razorpay integration and the
 dashboard are intentionally not implemented yet.
 
 ## Product decision
@@ -48,6 +49,7 @@ Generate and validate the M2 temporal dataset:
 npm run generate-data -- --seed 42
 npm run validate-data
 npm run validate-data -- --merchant mrc_001
+npm run evaluate:baseline
 ```
 
 Generated artifacts are written to the ignored
