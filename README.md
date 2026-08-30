@@ -6,11 +6,12 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M8 is complete: the original v1 evaluation remains reproducible, M4.5
+M9 is complete: the original v1 evaluation remains reproducible, M4.5
 provides independent merchant-disjoint evaluation, M5/M6 provide a bounded
 simulated recovery loop plus opportunity-value ranking, M7 adds explicit
 orchestration with an explanation-only LLM boundary, and M8 provides the
-judge-ready Control Tower demo. Production Razorpay operations remain
+judge-ready Control Tower demo. M9 adds hostile-judge documentation and
+concurrency/provenance hardening. Production Razorpay operations remain
 intentionally disabled.
 
 ## Product decision
