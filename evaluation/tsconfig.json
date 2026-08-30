@@ -10,5 +10,11 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["baseline/**/*.ts", "generator/**/*.ts", "ml/**/*.ts", "scripts/**/*.ts"]
+  "include": [
+    "baseline/**/*.ts",
+    "generalization/**/*.ts",
+    "generator/**/*.ts",
+    "ml/**/*.ts",
+    "scripts/**/*.ts"
+  ]
 }

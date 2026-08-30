@@ -85,7 +85,7 @@ export type DatasetSplits = {
 
 export type GeneratedDataset = {
   metadata: {
-    schemaVersion: 'm2';
+    schemaVersion: 'm2' | 'm4.5';
     seed: number;
     startAt: string;
     windowMinutes: number;
