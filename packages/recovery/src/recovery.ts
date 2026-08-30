@@ -719,13 +719,7 @@ export class RecoveryService {
           { existingActionId: reconciled.action.actionId, status: reconciled.action.status },
           now,
         );
-        return this.journey(
-          candidate,
-          recommendation,
-          reconciled.action,
-          reconciled.outcome,
-          true,
-        );
+        return this.journey(candidate, recommendation, reconciled.action, reconciled.outcome, true);
       }
       this.append(
         'duplicate_prevented',

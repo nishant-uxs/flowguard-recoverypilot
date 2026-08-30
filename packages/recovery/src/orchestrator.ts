@@ -132,6 +132,39 @@ export type RecoveryOrchestrationInput = {
   now?: string;
 };
 
+export const recoveryApprovalPayloadSchema = z
+  .object({
+    merchantReference: identifierSchema,
+    paymentReference: identifierSchema,
+    candidateId: identifierSchema,
+    reasonCodes: z.array(z.string().min(1)).max(10),
+    riskScore: probabilitySchema,
+    expectedRecoveryValuePaise: z.number().finite(),
+    amountPaise: z.number().int().nonnegative(),
+    actionType: z.literal('PAYMENT_LINK'),
+    expiresAt: timestampSchema,
+    policyChecks: z
+      .array(
+        z
+          .object({
+            check: z.string().min(1),
+            passed: z.boolean(),
+          })
+          .strict(),
+      )
+      .min(1),
+    explanation: z
+      .object({
+        summary: z.string().min(1).max(500),
+        reasonCodes: z.array(z.string().regex(/^[a-z0-9_]+$/)).max(20),
+        merchantExplanation: z.string().min(1).max(2_000),
+        customerMessageDraft: z.string().max(1_000).optional(),
+      })
+      .strict(),
+  })
+  .strict();
+export type RecoveryApprovalPayload = z.infer<typeof recoveryApprovalPayloadSchema>;
+
 export type OrchestrationEvent = {
   sequence: number;
   eventType:
@@ -165,6 +198,7 @@ export type RecoveryOrchestrationResult = {
   state: RecoveryState;
   candidate: RecoveryCandidate;
   recommendation: ReturnType<typeof buildRecoveryRecommendation>;
+  approvalPayload: RecoveryApprovalPayload | null;
   action: RecoveryAction | null;
   outcome: RecoveryOutcome | null;
   explanation: ExplanationResult;
@@ -175,6 +209,7 @@ type Session = {
   input: RecoveryOrchestrationInput;
   candidate: RecoveryCandidate;
   recommendation: ReturnType<typeof buildRecoveryRecommendation>;
+  approvalPayload: RecoveryApprovalPayload | null;
   state: RecoveryState;
   action: RecoveryAction | null;
   outcome: RecoveryOutcome | null;
@@ -311,12 +346,52 @@ export class RecoveryOrchestrator {
     );
   }
 
+  private approvalPayload(session: Session): RecoveryApprovalPayload {
+    const now = session.input.now ?? this.clock();
+    return recoveryApprovalPayloadSchema.parse({
+      merchantReference: session.candidate.merchantId,
+      paymentReference: session.candidate.paymentId,
+      candidateId: session.candidate.candidateId,
+      reasonCodes: session.input.opportunity.signals.filter((signal) =>
+        /^[a-z0-9_]+$/.test(signal),
+      ),
+      riskScore: session.candidate.riskScore,
+      expectedRecoveryValuePaise: session.recommendation.expectedRecoveryValuePaise,
+      amountPaise: session.candidate.recoverableAmountPaise,
+      actionType: 'PAYMENT_LINK',
+      expiresAt: new Date(
+        new Date(now).getTime() + this.policy.actionTtlMinutes * 60_000,
+      ).toISOString(),
+      policyChecks: [
+        {
+          check: 'minimum_risk_score',
+          passed: session.candidate.riskScore >= this.policy.minimumRiskScore,
+        },
+        {
+          check: 'minimum_expected_recovery_value',
+          passed:
+            session.recommendation.expectedRecoveryValuePaise >=
+            this.policy.minimumExpectedRecoveryValuePaise,
+        },
+        {
+          check: 'maximum_amount',
+          passed:
+            session.candidate.recoverableAmountPaise <= this.policy.maximumRecoverableAmountPaise,
+        },
+        { check: 'maximum_attempts', passed: this.policy.maximumAttempts === 1 },
+        { check: 'verification_required', passed: true },
+      ],
+      explanation: session.explanation.output,
+    });
+  }
+
   private result(session: Session): RecoveryOrchestrationResult {
     return {
       correlationId: session.input.correlationId,
       state: session.state,
       candidate: session.candidate,
       recommendation: session.recommendation,
+      approvalPayload: session.approvalPayload,
       action: session.action,
       outcome: session.outcome,
       explanation: session.explanation,
@@ -442,6 +517,7 @@ export class RecoveryOrchestrator {
       input: validatedInput,
       candidate,
       recommendation,
+      approvalPayload: null,
       state: 'DETECTED',
       action: null,
       outcome: null,
@@ -494,6 +570,7 @@ export class RecoveryOrchestrator {
     this.transition(session, 'POLICY_APPROVED', 'POLICY_EVALUATED', {
       decision: 'approved',
     });
+    session.approvalPayload = this.approvalPayload(session);
     if (validatedInput.merchantApproval === undefined) {
       this.transition(session, 'AWAITING_MERCHANT_APPROVAL', 'APPROVAL_REQUESTED', {
         expiresInMinutes: this.policy.actionTtlMinutes,

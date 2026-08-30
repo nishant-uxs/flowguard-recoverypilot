@@ -53,6 +53,12 @@ amount and attempt limits, 30-minute action expiry, merchant approval,
 duplicate prevention, already-recovered checks, a merchant cooldown and
 verification gating. These values are not writable through the LLM contract.
 
+The `RecoveryApprovalPayload` is the human-approval UX contract. It contains
+opaque references, reason codes, risk score, expected value, amount, action
+type, expiry, named policy-check results and the validated explanation. It has
+no executor command or implicit approval field; approval is a separate
+deterministic input.
+
 The LLM receives a strict, minimal input containing opaque merchant/payment
 references, scores, normalized signal codes, amount, policy decision and
 verified outcome. Customer PII, secrets, credentials, raw metadata and future

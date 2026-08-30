@@ -28,6 +28,7 @@ export {
   RecoveryOrchestrator,
   assertValidTransition,
   canTransition,
+  recoveryApprovalPayloadSchema,
   recoveryOrchestrationInputSchema,
 } from './orchestrator.js';
 
@@ -59,6 +60,7 @@ export type {
 
 export type {
   OrchestrationEvent,
+  RecoveryApprovalPayload,
   RecoveryDetection,
   RecoveryOpportunityScore,
   RecoveryOrchestrationInput,

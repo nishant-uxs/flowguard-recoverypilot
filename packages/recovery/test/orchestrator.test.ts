@@ -65,6 +65,20 @@ describe('recovery orchestration state machine', () => {
     expect(awaiting.state).toBe('AWAITING_MERCHANT_APPROVAL');
     expect(awaiting.action).toBeNull();
     expect(awaiting.explanation.source).toBe('deterministic_fallback');
+    expect(awaiting.approvalPayload).toMatchObject({
+      merchantReference: 'merchant_001',
+      paymentReference: 'payment_001',
+      actionType: 'PAYMENT_LINK',
+      amountPaise: 1_000,
+      expectedRecoveryValuePaise: 780,
+    });
+    expect(awaiting.approvalPayload?.policyChecks).toEqual(
+      expect.arrayContaining([
+        { check: 'minimum_risk_score', passed: true },
+        { check: 'maximum_attempts', passed: true },
+        { check: 'verification_required', passed: true },
+      ]),
+    );
     expect(executor.createCalls).toBe(0);
 
     const completed = await orchestrator.approve('correlation_001', 'approved');
