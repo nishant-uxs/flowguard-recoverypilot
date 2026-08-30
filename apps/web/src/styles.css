@@ -23,6 +23,17 @@
   --red: #ff8e87;
   --blue: #77b8ff;
   --accent: #f1a35b;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 5px;
+  --radius-md: 9px;
+  --shadow-panel: 0 14px 34px rgb(0 0 0 / 16%);
+  --transition: 180ms ease;
 }
 
 * {
@@ -84,7 +95,7 @@ summary:focus-visible {
 .brand-mark {
   align-items: center;
   background: var(--accent);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: #17120d;
   display: inline-flex;
   font-size: 13px;
@@ -195,10 +206,39 @@ h3 {
 .how-section {
   background: var(--panel);
   border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.opportunity-main,
+.pipeline-card,
+.approval-panel,
+.outcome-panel,
+.impact-section,
+.audit-card,
+.safety-card,
+.how-section {
+  animation: panel-enter 480ms ease-out both;
+}
+
+.pipeline-card {
+  animation-delay: 60ms;
+}
+
+.approval-panel {
+  animation-delay: 100ms;
+}
+
+.outcome-panel {
+  animation-delay: 140ms;
+}
+
+.impact-section {
+  animation-delay: 180ms;
 }
 
 .intro-status {
   border-left: 3px solid var(--accent);
+  box-shadow: var(--shadow-panel);
   padding: 18px 20px;
 }
 
@@ -303,11 +343,16 @@ h3 {
 .scenario-button {
   background: transparent;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--soft);
   cursor: pointer;
   font-size: 11px;
   padding: 8px 10px;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform var(--transition);
 }
 
 .scenario-button:hover,
@@ -315,6 +360,10 @@ h3 {
   background: #263444;
   border-color: #59748f;
   color: var(--white);
+}
+
+.scenario-button:hover {
+  transform: translateY(-1px);
 }
 
 .scenario-button:disabled {
@@ -326,8 +375,11 @@ h3 {
 .decision-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: 1.28fr 0.72fr;
   margin-top: 16px;
+}
+
+.opportunity-grid {
+  grid-template-columns: 1fr;
 }
 
 .opportunity-main,
@@ -337,6 +389,17 @@ h3 {
 .audit-card,
 .safety-card {
   padding: 25px;
+}
+
+.opportunity-main,
+.pipeline-card,
+.approval-panel,
+.outcome-panel,
+.impact-section,
+.audit-card,
+.safety-card,
+.how-section {
+  box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
 }
 
 .section-heading {
@@ -353,7 +416,7 @@ h3 {
 
 .opportunity-value {
   border-bottom: 1px solid var(--line);
-  margin-top: 32px;
+  margin-top: 24px;
   padding-bottom: 24px;
 }
 
@@ -414,6 +477,37 @@ h3 {
   font-size: 17px;
 }
 
+.signal-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 22px;
+}
+
+.signal-context div {
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
+
+.signal-context span,
+.signal-context strong {
+  display: block;
+}
+
+.signal-context span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.signal-context strong {
+  color: var(--soft);
+  font-size: 12px;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
 .reason-box {
   background: #0e161e;
   border-left: 2px solid var(--blue);
@@ -444,7 +538,9 @@ h3 {
 }
 
 .model-signal {
+  background: rgb(15 23 32 / 58%);
   border-top: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   margin-top: 18px;
   padding-top: 17px;
 }
@@ -508,24 +604,41 @@ h3 {
 }
 
 .pipeline {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(8, 1fr);
   list-style: none;
   margin: 0;
+  overflow: hidden;
   padding: 0;
 }
 
 .pipeline-step {
   align-items: center;
-  border-bottom: 1px solid #1d2a36;
+  border-bottom: 0;
   color: var(--muted);
-  display: grid;
+  display: flex;
+  flex-direction: column;
   font-size: 12px;
   gap: 10px;
-  grid-template-columns: 22px 1fr auto;
-  padding: 11px 0;
+  min-width: 0;
+  padding: 9px 8px 12px;
+  position: relative;
+  text-align: center;
 }
 
-.pipeline-step:last-child {
-  border-bottom: 0;
+.pipeline-step:not(:last-child)::after {
+  background: var(--line);
+  content: '';
+  height: 1px;
+  left: calc(50% + 18px);
+  position: absolute;
+  right: calc(-50% + 18px);
+  top: 18px;
+}
+
+.pipeline-step.complete:not(:last-child)::after {
+  background: #3c7765;
 }
 
 .pipeline-step.complete {
@@ -537,6 +650,10 @@ h3 {
   font-weight: 700;
 }
 
+.pipeline-step.active .pipeline-node {
+  box-shadow: 0 0 0 5px rgb(119 184 255 / 12%);
+}
+
 .pipeline-step.blocked {
   color: var(--red);
 }
@@ -544,18 +661,61 @@ h3 {
 .pipeline-node {
   align-items: center;
   border: 1px solid currentcolor;
+  background: var(--panel);
   border-radius: 50%;
   display: inline-flex;
-  font-size: 11px;
   height: 20px;
   justify-content: center;
+  position: relative;
   width: 20px;
+  z-index: 1;
+}
+
+.pipeline-icon {
+  fill: none;
+  height: 14px;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 14px;
+}
+
+.pipeline-icon circle {
+  fill: currentcolor;
+  stroke: none;
+}
+
+.pipeline-step strong {
+  font-size: 11px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .pipeline-step small {
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.pipeline-step.pending .pipeline-node {
+  color: var(--muted);
+}
+
+.pipeline-step.blocked .pipeline-node {
+  color: var(--red);
+}
+
+.pipeline-step.complete .pipeline-node {
+  color: var(--mint);
+}
+
+.pipeline-step.active .pipeline-node {
+  color: var(--blue);
+}
+
+.pipeline-step .pipeline-node {
+  flex: 0 0 auto;
 }
 
 .decision-grid {
@@ -652,6 +812,16 @@ h3 {
   color: var(--red);
 }
 
+.check-icon svg {
+  fill: none;
+  height: 11px;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 11px;
+}
+
 .check-row strong {
   color: var(--mint);
   font-size: 9px;
@@ -669,11 +839,14 @@ h3 {
 
 .primary-button,
 .secondary-button {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 12px;
   font-weight: 800;
   padding: 12px 16px;
+  transition:
+    filter var(--transition),
+    transform var(--transition);
 }
 
 .primary-button {
@@ -698,6 +871,7 @@ h3 {
 .primary-button:hover,
 .secondary-button:hover {
   filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .primary-button:disabled,
@@ -759,8 +933,13 @@ h3 {
 
 .outcome-block {
   background: #0e161e;
+  border-radius: var(--radius-sm);
   margin-top: 23px;
   padding: 15px;
+}
+
+.recovered-panel .outcome-block {
+  animation: verified-reveal 520ms ease-out both;
 }
 
 .outcome-block strong {
@@ -1153,6 +1332,61 @@ summary {
   font-size: clamp(30px, 5vw, 54px);
 }
 
+.loading-skeleton {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+  max-width: 620px;
+}
+
+.loading-skeleton span {
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  background: var(--panel-raised);
+  border-radius: var(--radius-sm);
+  display: block;
+  height: 13px;
+}
+
+.loading-skeleton span:nth-child(2) {
+  max-width: 82%;
+}
+
+.loading-skeleton span:nth-child(3) {
+  max-width: 64%;
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes verified-reveal {
+  from {
+    opacity: 0.4;
+    transform: translateY(5px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
 @media (max-width: 1000px) {
   .shell {
     padding-left: 22px;
@@ -1176,6 +1410,16 @@ summary {
 
   .how-step:nth-child(4) {
     border-right: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .pipeline {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .pipeline-step::after {
+    display: none;
   }
 }
 
@@ -1264,5 +1508,16 @@ summary {
 
   .how-step:nth-child(even) {
     border-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

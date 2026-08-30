@@ -48,6 +48,27 @@ function StatusChip({ label, value }: { label: string; value: string }) {
   );
 }
 
+function PipelineIcon({ status }: { status: 'active' | 'complete' | 'blocked' | 'pending' }) {
+  return (
+    <svg aria-hidden="true" className="pipeline-icon" viewBox="0 0 20 20">
+      {status === 'complete' ? <path d="m5 10 3 3 7-7" /> : null}
+      {status === 'active' ? <circle cx="10" cy="10" r="3" /> : null}
+      {status === 'blocked' ? <path d="m6 6 8 8m0-8-8 8" /> : null}
+      {status === 'pending' ? <path d="M6 10h8" /> : null}
+    </svg>
+  );
+}
+
+function CheckIcon({ passed }: { passed: boolean }) {
+  return (
+    <span aria-hidden="true" className={passed ? 'check-icon passed' : 'check-icon blocked'}>
+      <svg viewBox="0 0 16 16">
+        {passed ? <path d="m4 8 2.2 2.2L12 4.8" /> : <path d="m4.5 4.5 7 7m0-7-7 7" />}
+      </svg>
+    </span>
+  );
+}
+
 function SectionHeading({
   eyebrow,
   title,
@@ -119,6 +140,11 @@ export function App() {
         <div className="brand-mark">FG</div>
         <p className="eyebrow">FLOWGUARD · CONTROL TOWER</p>
         <h1>Connecting to the deterministic demo…</h1>
+        <div className="loading-skeleton" aria-label="Loading demo state">
+          <span />
+          <span />
+          <span />
+        </div>
         {error ? (
           <div className="error-banner" role="alert">
             <strong>Demo API unavailable.</strong> {error}
@@ -212,10 +238,20 @@ export function App() {
         <div className="opportunity-main">
           <SectionHeading
             eyebrow="WHAT IS HAPPENING?"
-            title="A merchant is drifting into UPI Intent degradation."
+            title="Revenue recovery opportunity detected."
             detail={`Source event ${demo.current.paymentReference}`}
             headingId="opportunity-heading"
           />
+          <div className="signal-context">
+            <div>
+              <span>AFFECTED MERCHANT</span>
+              <strong>{demo.current.merchantReference}</strong>
+            </div>
+            <div>
+              <span>SEGMENT</span>
+              <strong>{demo.current.segment.replaceAll('_', ' ')}</strong>
+            </div>
+          </div>
           <div className="opportunity-value">
             <span>Expected recovery opportunity</span>
             <strong>{formatSimulatedValue(demo.current.expectedRecoveryValuePaise)}</strong>
@@ -276,10 +312,10 @@ export function App() {
           <ol className="pipeline">
             {demo.pipeline.map((step) => (
               <li className={`pipeline-step ${step.status}`} key={step.key}>
-                <span className="pipeline-node" aria-hidden="true">
-                  {step.status === 'complete' ? '✓' : step.status === 'active' ? '•' : '—'}
+                <span className="pipeline-node">
+                  <PipelineIcon status={step.status} />
                 </span>
-                <span>{step.label}</span>
+                <strong>{step.label}</strong>
                 <small>{step.status}</small>
               </li>
             ))}
@@ -325,9 +361,7 @@ export function App() {
             <span className="label">POLICY CHECKS</span>
             {demo.approvalPayload?.policyChecks.map((check) => (
               <div className="check-row" key={check.check}>
-                <span className={check.passed ? 'check-icon passed' : 'check-icon blocked'}>
-                  {check.passed ? '✓' : '×'}
-                </span>
+                <CheckIcon passed={check.passed} />
                 <span>{check.check.replaceAll('_', ' ')}</span>
                 <strong>{check.passed ? 'PASS' : 'BLOCK'}</strong>
               </div>
@@ -372,7 +406,7 @@ export function App() {
               {demo.explanation.source === 'llm' ? 'LLM · VALIDATED' : 'DETERMINISTIC FALLBACK'}
             </strong>
           </div>
-          <div className="outcome-block" aria-live="polite">
+          <div className="outcome-block" aria-live="polite" aria-atomic="true" role="status">
             {demo.outcome ? (
               <>
                 <span className="label">RECOVERY OUTCOME</span>
