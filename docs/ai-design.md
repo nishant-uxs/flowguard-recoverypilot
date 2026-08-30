@@ -143,3 +143,25 @@ seeds. This supports the opportunity-selection hypothesis only under this
 synthetic response model. It is not a production recovery probability or
 revenue estimate. Recovery calibration is a separate target from degradation
 calibration, and real TEST MODE outcomes are still required.
+
+## M7 explanation and orchestration
+
+M7 wraps the quantitative core in an explicit `RecoveryOrchestrator` state
+machine. It moves from detection and scoring through deterministic policy,
+merchant approval, one bounded executor attempt, verification and audit.
+Retries use the existing SHA-256 idempotency key; a provider action cannot be
+counted as recovered until verification succeeds.
+
+The LLM is explanation-only. Its versioned prompt forbids payment execution,
+authorization, policy/limit changes, secret requests, invented facts and
+unverified recovery claims. Its Zod-validated output contains only summary,
+reason codes, merchant explanation and an optional customer draft. Signal
+codes are allow-listed and untrusted metadata is not passed as instructions.
+Malformed, unsafe, unavailable or timed-out output uses a deterministic
+fallback. No LLM output is consumed by policy or the executor.
+
+The approval payload is defined without building the final dashboard:
+opaque merchant/payment references, reason codes, risk score, expected
+recovery value, amount, action, expiry, policy checks and explanation. M7
+continues to default to deterministic simulation; Razorpay TEST MODE remains
+an explicit adapter boundary.

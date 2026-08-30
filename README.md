@@ -6,11 +6,11 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M6 is complete: the original v1 evaluation remains reproducible, M4.5 provides
-independent merchant-disjoint evaluation, and M5/M6 provide a bounded
-simulated recovery loop plus opportunity-value ranking under intervention
-budgets. The LLM, dashboard and production Razorpay operations are
-intentionally not implemented.
+M7 is complete: the original v1 evaluation remains reproducible, M4.5
+provides independent merchant-disjoint evaluation, M5/M6 provide a bounded
+simulated recovery loop plus opportunity-value ranking, and M7 adds explicit
+orchestration with an explanation-only LLM boundary. The dashboard and
+production Razorpay operations are intentionally not implemented.
 
 ## Product decision
 
@@ -32,7 +32,9 @@ Temporal events
 ```
 
 See [docs/product-spec.md](docs/product-spec.md) and
-[docs/architecture.md](docs/architecture.md) for the current scope.
+[docs/architecture.md](docs/architecture.md) and
+[docs/agent-architecture.md](docs/agent-architecture.md) for the current
+scope.
 
 ## Local development
 

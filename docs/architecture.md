@@ -196,3 +196,26 @@ sensitivity while preserving the M5 report.
 On this synthetic response model FlowGuard has higher mean simulated value at
 every budget, but this is not production evidence. Real opportunity
 calibration requires observed TEST MODE outcomes before any production claim.
+
+## M7 orchestration and explanation boundary
+
+`RecoveryOrchestrator` makes the complete flow explicit:
+
+```text
+events -> detector -> opportunity scorer -> orchestrator
+       -> policy -> merchant approval -> executor -> verification -> audit
+       -> batch value
+                    \
+                     -> explanation-only LLM or deterministic fallback
+```
+
+The orchestrator uses a validated state machine from `DETECTED` through
+`SCORED`, policy approval, merchant approval, execution, verification and a
+terminal outcome. The LLM receives only allow-listed structured fields and
+cannot authorize, execute, change limits, alter idempotency or write audit
+records. Unsafe, malformed, unavailable or prompt-injected provider output is
+discarded in favor of a deterministic explanation.
+
+M7 does not add an autonomous agent loop. Simulation remains the default and
+the Razorpay adapter requires explicit TEST MODE credentials. See
+`docs/agent-architecture.md` for the state and trust-boundary diagrams.
