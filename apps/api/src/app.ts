@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { DemoController, demoScenarioSchema } from './demo.js';
 
 export function buildApp() {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: { level: 'warn' } });
   const demo = new DemoController();
 
   app.register(cors, { origin: true });
