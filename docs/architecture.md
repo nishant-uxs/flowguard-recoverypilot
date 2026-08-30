@@ -176,3 +176,23 @@ records candidate, recommendation, policy, approval, action, verification,
 outcome and duplicate events, including source event ID, payment, merchant,
 model version, score and idempotency key. The batch comparison is explicitly
 simulated; no production payment operation is enabled by M5.
+
+## M6 opportunity boundary
+
+M6 keeps detection and recovery opportunity prediction separate. The detector
+answers whether degradation is emerging; the opportunity scorer answers
+whether intervening now is likely to recover value. Its inputs are
+decision-time observable proxies only: amount, severity, elapsed time,
+merchant history, customer responsiveness, retries, latency and intervention
+cost.
+
+The M6 evaluator generates hidden counterfactual potential outcomes from
+latent factors and noisy observations. Hidden propensity and post-intervention
+success are evaluator-only fields. Twenty independent seeds and five
+intervention budgets test ranking rather than a single favorable batch. M6
+reports simulated value curves, Precision@K, recall, calibration, timing and
+sensitivity while preserving the M5 report.
+
+On this synthetic response model FlowGuard has higher mean simulated value at
+every budget, but this is not production evidence. Real opportunity
+calibration requires observed TEST MODE outcomes before any production claim.

@@ -120,3 +120,26 @@ reject amount-limit, approval, duplicate or attempt-limit violations. A
 merchant approval is required before the single bounded payment-link
 intervention. Verification, not link creation, produces a recovered outcome.
 The LLM remains intentionally unimplemented; it cannot execute payment tools.
+
+## M6 opportunity optimization
+
+M5's executor simulator was not a valid opportunity-ranking environment:
+outcomes were fixed scenarios or a seed hash and did not respond to amount,
+timing or severity. M6 preserves that result and adds a separate
+`m6-recovery-value-v1` evaluator. It creates hidden counterfactual
+“would-recover-if-intervened” outcomes from latent factors, while exposing
+only noisy decision-time proxies to the opportunity scorer.
+
+The scorer is deliberately separate from degradation detection. It estimates
+recovery probability from observable severity, timing, amount, merchant
+history, customer responsiveness, retries, latency and intervention cost, then
+ranks by expected recovery value. A fixed input-order baseline receives the
+same action constraints but no model score.
+
+Across 20 seeds and budgets of 10/25/50/75/100, FlowGuard's mean simulated
+recovered value exceeded baseline at every budget; at budget 50 the means were
+150,936.9 versus 85,373.5 simulated units, with FlowGuard winning all 20
+seeds. This supports the opportunity-selection hypothesis only under this
+synthetic response model. It is not a production recovery probability or
+revenue estimate. Recovery calibration is a separate target from degradation
+calibration, and real TEST MODE outcomes are still required.

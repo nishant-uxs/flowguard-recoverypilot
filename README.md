@@ -6,10 +6,10 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M5 is complete: the original v1 evaluation remains reproducible, M4.5 provides
-independent merchant-disjoint evaluation, and a bounded simulated recovery
-loop now covers approval, policy, idempotency, execution, verification and
-audit outcomes. The LLM, dashboard and production Razorpay operations are
+M6 is complete: the original v1 evaluation remains reproducible, M4.5 provides
+independent merchant-disjoint evaluation, and M5/M6 provide a bounded
+simulated recovery loop plus opportunity-value ranking under intervention
+budgets. The LLM, dashboard and production Razorpay operations are
 intentionally not implemented.
 
 ## Product decision
@@ -56,6 +56,7 @@ npm run evaluate:ml
 npm run generate:generalization-data
 npm run evaluate:generalization
 npm run evaluate:recovery
+npm run evaluate:recovery-value
 ```
 
 Generated artifacts are written to the ignored
