@@ -6,9 +6,11 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M4 is complete: the reproducible temporal dataset, interpretable baseline and
-offline ML experiment are available. Recovery actions, LLM, Razorpay
-integration and the dashboard are intentionally not implemented yet.
+M4.5 is complete: the original v1 evaluation remains reproducible, and an
+independent merchant-disjoint, shifted-pattern evaluation protocol with
+lead-time-aware scoring, calibration, utility sensitivity and leakage audits
+is available. Recovery actions, LLM, Razorpay integration and the dashboard
+are intentionally not implemented yet.
 
 ## Product decision
 
@@ -51,10 +53,13 @@ npm run validate-data
 npm run validate-data -- --merchant mrc_001
 npm run evaluate:baseline
 npm run evaluate:ml
+npm run generate:generalization-data
+npm run evaluate:generalization
 ```
 
 Generated artifacts are written to the ignored
-`evaluation/datasets/generated/` directory.
+`evaluation/datasets/generated/` and
+`evaluation/datasets/generalization-v2/` directories.
 
 Start the API and web app in separate terminals:
 

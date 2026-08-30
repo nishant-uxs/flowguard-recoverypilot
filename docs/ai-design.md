@@ -72,3 +72,34 @@ from known distributions and may not represent production behavior. Scores
 must not be described as production payment-failure accuracy or recovered
 revenue. The next credible evaluation improvement is a separately generated
 merchant-disjoint and shifted-pattern dataset, not a larger neural network.
+
+## M4.5 evaluation hardening
+
+The original GRU's F1 of 1.000 was misleading because its median lead was
+-15 minutes, only 5% of detected episodes met the 10-minute early target, and
+its Brier/ECE were 0.269/0.447. M4.5 therefore keeps v1 immutable and
+introduces an independent `m4.5-v2` protocol. Known merchants use mechanisms
+A/B/C; a disjoint holdout uses independently parameterized mechanisms D/J and
+other shifted/stress cases, including latency-first, volume-plus-failure,
+slow, fast, noisy, temporary-recovery, cross-segment-confounder and
+baseline-shift behavior.
+
+The prediction target is future sustained UPI Intent degradation onset within
+30 minutes. Scoring distinguishes eventual classification from useful
+intervention: the earliest unused alert is matched once, alerts before onset
+receive lead time, alerts during the 30-minute useful window are late-useful,
+and alerts after that window are not credited. All models share the matcher,
+cooldown, test period and lead-time definitions.
+
+M4.5 also adds normalized cost-sensitive utility and sensitivity analysis.
+False-alert, missed-episode and early-minute values are declared assumptions,
+not Razorpay economics. Platt calibration is fit on known validation
+predictions only. Identifiers, scenario metadata and future outcomes remain
+outside model features; the audit adds duplicate, split-overlap,
+scenario-disjointness and simple single-feature probes.
+
+The model gate is deliberately strict: a neural model must improve useful
+early warning, recall, false-alert control, shifted-merchant performance and
+calibration together. Otherwise the simpler model or deterministic baseline
+remains preferred. These synthetic results can support a bounded demo
+recovery layer, but cannot establish production readiness or revenue impact.

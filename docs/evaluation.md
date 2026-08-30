@@ -175,3 +175,55 @@ It writes ignored `evaluation/results/ml-experiment.json` and
 `evaluation/results/ml-experiment-report.md`. The baseline remains the
 reference: a neural model earns inclusion only through meaningful improvement
 in early detection and episode recall without unacceptable false alerts.
+
+## M4.5 independent evaluation hardening
+
+M4's GRU result exposed a protocol weakness: F1 could be perfect while useful
+early warning remained poor. M4.5 does not modify the v1 dataset or its
+results. It adds protocol version `m4.5-v2` under
+`evaluation/generalization/`, with 240 independently generated merchants,
+known mechanisms A/B/C and a merchant-disjoint holdout containing shifted and
+stress mechanisms D/J.
+
+The v2 mechanisms include gradual failure, latency-first, volume-plus-failure,
+short-signal, slow low-amplitude, fast, noisy, temporary recovery,
+cross-segment confounding and a target baseline shift without target truth.
+Only A/B/C are used for known-merchant training; D/J and the other shifted
+families are reserved for holdout evaluation. The generator uses opaque IDs,
+randomized episode timing, multiple merchant traffic classes and repeated
+episodes for known merchants. `npm run generate:generalization-data` exports
+the ignored v2 dataset.
+
+The v2 sequence splitter purges each boundary by the four-window observation
+length, so no raw input window is reused between train, validation and test.
+The original M4 splitter is intentionally unchanged for v1 reproducibility.
+
+The final target remains future sustained degradation onset within six
+five-minute windows after a four-window observation. The hardening scorer uses
+one earliest unused alert per episode, a 30-minute prediction horizon and a
+30-minute useful intervention window. Alerts after that window are not
+credited. It separately reports early alerts, late-useful alerts, missed
+episodes, unmatched false alerts, false alert episodes, and duplicate signals.
+Lead-time metrics include p25/median/p75, mean lead, at least 5/10/20 minutes
+early, and a normalized lead-time utility.
+
+Utility is an explicitly parameterized evaluation assumption, not money:
+`utility = early_minutes × early_value − false_alerts × false_alert_cost −
+missed_episodes × missed_episode_cost`. The report runs sensitivity cases for
+false-alert cost, missed-episode cost and early value. Calibration uses Platt
+scaling fit on known validation predictions only; test predictions are never
+used for calibration or threshold selection.
+
+Run the independent experiment with:
+
+```bash
+npm run evaluate:generalization
+```
+
+It writes ignored `generalization-report.json`,
+`generalization-report.md` and `experiment-manifest.json`. The report includes
+scenario/merchant disjointness, simple artifact probes, naive/EWMA/logistic/GRU
+comparisons, ablations, calibration, sensitivity and explicit limitations.
+The single-feature probe is a screening audit rather than proof against every
+multivariate artifact. Synthetic v2 evidence is not production readiness,
+revenue recovery, or proof of broad merchant generalization.

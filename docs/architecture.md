@@ -117,3 +117,27 @@ GRU is an offline experiment, not a runtime dependency or a recovery policy.
 The local run used CPU because the installed PyTorch build exposed no CUDA
 device. No model is allowed to trigger payments, call an LLM or bypass the
 future recovery approval boundary.
+
+## M4.5 evaluation boundary
+
+M4.5 preserves the v1 generator and results and adds an independent v2
+protocol under `evaluation/generalization`. Its observable events contain no
+scenario labels or future outcomes. Known merchants use A/B/C degradation
+families; a merchant-disjoint holdout contains shifted mechanisms D/J and
+stress/confounder cases. Merchant IDs and scenario metadata are truth/audit
+data, never model features.
+
+The hardening evaluator gives every model the same episode matcher,
+30-minute prediction horizon, 30-minute useful intervention window,
+cooldown/debounce rule and lead-time metrics. It reports early, late-useful,
+late-useless and false alerts separately. Normalized utility is parameterized
+and sensitivity-tested; it is not a revenue estimate. Platt calibration and
+model operating thresholds are fitted on known validation predictions only.
+The v2 audit checks duplicate identifiers, merchant/scenario overlap and
+simple artifact probes.
+
+This boundary remains offline. It can inform whether a bounded demo recovery
+layer is worth building, but M4.5 does not authorize production claims,
+payment execution, an LLM, or dashboard integration. The first GRU's perfect
+v1 F1 is explicitly treated as an evaluation warning rather than a product
+decision.
