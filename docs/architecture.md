@@ -219,3 +219,12 @@ discarded in favor of a deterministic explanation.
 M7 does not add an autonomous agent loop. Simulation remains the default and
 the Razorpay adapter requires explicit TEST MODE credentials. See
 `docs/agent-architecture.md` for the state and trust-boundary diagrams.
+
+## M8 demo boundary
+
+The Control Tower consumes structured state from the local demo API. Its default
+state is a fixed-seed `SimulationRecoveryExecutor` journey; it does not
+recalculate policy, eligibility, value, idempotency or verification in React.
+The UI labels `DEMO / SIMULATION`, `SYNTHETIC EVALUATION` and `RAZORPAY TEST
+MODE` as separate provenance classes. It exposes the model signal for the
+judge, but the seeded demo score is not a live detector prediction.

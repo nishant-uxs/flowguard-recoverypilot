@@ -119,7 +119,9 @@ The deterministic policy can abstain on low confidence or low value and can
 reject amount-limit, approval, duplicate or attempt-limit violations. A
 merchant approval is required before the single bounded payment-link
 intervention. Verification, not link creation, produces a recovered outcome.
-The LLM remains intentionally unimplemented; it cannot execute payment tools.
+At the M5 boundary the LLM was intentionally not part of the recovery path;
+M7 later added an explanation-only LLM boundary that cannot execute payment
+tools.
 
 ## M6 opportunity optimization
 

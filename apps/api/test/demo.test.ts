@@ -15,6 +15,11 @@ describe('M8 deterministic demo API', () => {
     expect(body.approvalPayload.actionType).toBe('PAYMENT_LINK');
     expect(body.systemStatus.llm).toContain('FALLBACK');
     expect(body.batch.syntheticEvaluation.label).toContain('SYNTHETIC');
+    expect(body.current.modelSignal).toMatchObject({
+      modelType: 'Interpretable logistic opportunity scorer',
+      estimatedProbability: 0.8,
+      provenance: 'DEMO / SIMULATION · seeded model output',
+    });
 
     await app.close();
   });

@@ -27,6 +27,12 @@ reason codes:
 > “The opportunity score estimates value from observable signals. This is
 > predicted recovery value, not recovered money.”
 
+Point to `MODEL SIGNAL`:
+
+> “The interpretable logistic opportunity scorer supplies an estimated recovery
+> probability and important decision-time signals. This seeded demo output is
+> labeled separately from the offline calibration evidence.”
+
 ## 1:00 — Policy
 
 Point to the policy checklist:
@@ -72,6 +78,11 @@ Point to `BATCH IMPACT` and the single chart:
 > independent seeds, not production Razorpay revenue.”
 
 Point to the separate `DEMO / SIMULATION` runtime metric.
+
+> “A fixed retry would spend a limited intervention budget without ranking
+> opportunities. Recovery probability varies by timing, amount, responsiveness
+> and merchant context, while approval, duplicate prevention and verification
+> constrain the action.”
 
 ## 2:40 — Safety
 

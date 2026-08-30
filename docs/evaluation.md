@@ -271,8 +271,10 @@ could not validate opportunity ranking: response outcomes did not vary with
 amount, timing, severity or score. M6 preserves M5 and adds
 `m6-recovery-value-v1`, where hidden counterfactual recovery outcomes are
 generated from latent merchant history, customer responsiveness, severity,
-time since detection, amount, retries, latency and noise. The decision layer
-receives only noisy observable proxies.
+time since detection, amount, retries, latency and noise. This hidden outcome
+is evaluation-only: it is not available when the decision is made and is not
+passed to the scorer. The decision layer receives only noisy observable
+proxies.
 
 The opportunity scorer is intentionally separate from degradation detection:
 `predicted recovery probability × recoverable amount − intervention cost`.
@@ -283,7 +285,10 @@ constraints.
 M6 evaluates 20 independent seeds, 200 cases per seed, and budgets of 10, 25,
 50, 75 and 100. At budget 50, mean simulated recovered value is 150,936.9
 for FlowGuard versus 85,373.5 for baseline, and FlowGuard wins on all 20
-seeds. At budget 10 the means are 42,047.3 versus 15,776.9. Top-10
+seeds. Both strategies use the same candidate pool, budget, timing context,
+approval availability, amount limits, executor outcomes and verification
+rules; only candidate selection differs. At budget 10 the means are 42,047.3
+versus 15,776.9. Top-10
 Precision@K is 0.635 versus 0.485. These are results under an explicit
 synthetic response model, not Razorpay revenue or production success
 probabilities.

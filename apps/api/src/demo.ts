@@ -257,6 +257,15 @@ export class DemoController {
         state: result.state,
         reasonCodes: this.runtime.result.approvalPayload?.reasonCodes ?? [],
         reason: result.recommendation.rationale,
+        modelSignal: {
+          modelType: 'Interpretable logistic opportunity scorer',
+          estimatedProbability: result.candidate.estimatedSuccessProbability,
+          importantSignals: scenarioInput(this.runtime.scenario).opportunity.signals,
+          modelVersion: 'm6-opportunity-v1',
+          provenance: 'DEMO / SIMULATION · seeded model output',
+          calibrationNote:
+            'The seeded demo probability is illustrative; calibration evidence is reported in the synthetic M6 evaluation.',
+        },
       },
       pipeline: pipelineFor(result.state),
       approvalPayload: result.approvalPayload,

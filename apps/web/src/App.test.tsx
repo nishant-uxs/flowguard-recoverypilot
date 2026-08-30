@@ -32,6 +32,14 @@ function state(overrides: Partial<DemoState> = {}): DemoState {
       state: 'AWAITING_MERCHANT_APPROVAL',
       reasonCodes: ['failure_rate_above_baseline'],
       reason: 'sustained UPI Intent failure rate above baseline',
+      modelSignal: {
+        modelType: 'Interpretable logistic opportunity scorer',
+        estimatedProbability: 0.8,
+        importantSignals: ['failure_rate_above_baseline'],
+        modelVersion: 'm6-opportunity-v1',
+        provenance: 'DEMO / SIMULATION · seeded model output',
+        calibrationNote: 'Calibration evidence is reported in the synthetic M6 evaluation.',
+      },
     },
     pipeline: [
       { key: 'DETECTED', label: 'Detected', status: 'complete' },
@@ -131,6 +139,8 @@ describe('M8 control tower', () => {
     expect(await screen.findByText('Expected recovery opportunity')).toBeInTheDocument();
     expect(screen.getByText('SIMULATION / DEMO MODE')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /approve recovery/i })).toBeEnabled();
+    expect(screen.getByText('MODEL SIGNAL')).toBeInTheDocument();
+    expect(screen.getByText('Estimated recovery probability')).toBeInTheDocument();
     expect(
       screen.getByText(/Approval is required before the financial\/test action/),
     ).toBeInTheDocument();

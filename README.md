@@ -35,7 +35,10 @@ Temporal events
 See [docs/product-spec.md](docs/product-spec.md) and
 [docs/architecture.md](docs/architecture.md) and
 [docs/agent-architecture.md](docs/agent-architecture.md) for the current
-scope.
+scope. The hostile-jury responses, audit and short pitch are in
+[docs/judge-questions.md](docs/judge-questions.md),
+[docs/final-audit.md](docs/final-audit.md) and
+[docs/30-second-pitch.md](docs/30-second-pitch.md).
 
 ## Local development
 
@@ -86,7 +89,7 @@ credentials or real-money transactions belong in this repository.
 
 ## Evaluation and safety
 
-The final system will include a seeded temporal dataset, a statistical baseline,
-shifted holdouts, calibrated ML predictions, failure injection and reproducible
-business metrics. Simulated or test-mode monetary outcomes will always be labeled
-as such.
+The system includes a seeded temporal dataset, a statistical baseline, shifted
+holdouts, ML predictions, failure injection and reproducible business metrics.
+Simulated or test-mode monetary outcomes are always labeled as such; they are
+not production Razorpay revenue.

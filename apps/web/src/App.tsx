@@ -17,11 +17,11 @@ const scenarios: { id: DemoScenario; label: string }[] = [
   { id: 'verification_failure', label: 'Verification Failure' },
 ];
 
-function formatMoney(paise: number) {
-  return `₹${(paise / 100).toLocaleString('en-IN', {
+function formatSimulatedValue(paise: number) {
+  return `${paise.toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  })} simulated units`;
 }
 
 function formatPercent(value: number) {
@@ -218,8 +218,8 @@ export function App() {
           />
           <div className="opportunity-value">
             <span>Expected recovery opportunity</span>
-            <strong>{formatMoney(demo.current.expectedRecoveryValuePaise)}</strong>
-            <small>Predicted value · not recovered value</small>
+            <strong>{formatSimulatedValue(demo.current.expectedRecoveryValuePaise)}</strong>
+            <small>Predicted value · not recovered value · SIMULATION</small>
           </div>
           <div className="signal-row">
             <div>
@@ -228,7 +228,7 @@ export function App() {
             </div>
             <div>
               <span>Amount at risk</span>
-              <strong>{formatMoney(demo.current.amountPaise)}</strong>
+              <strong>{formatSimulatedValue(demo.current.amountPaise)}</strong>
             </div>
             <div>
               <span>Severity</span>
@@ -243,6 +243,32 @@ export function App() {
                 <span key={code}>{code.replaceAll('_', ' ')}</span>
               ))}
             </div>
+          </div>
+          <div className="model-signal">
+            <div className="model-signal-heading">
+              <span className="label">MODEL SIGNAL</span>
+              <small>{demo.current.modelSignal.provenance}</small>
+            </div>
+            <div className="model-signal-details">
+              <div>
+                <span>Model</span>
+                <strong>{demo.current.modelSignal.modelType}</strong>
+              </div>
+              <div>
+                <span>Estimated recovery probability</span>
+                <strong>{formatPercent(demo.current.modelSignal.estimatedProbability)}</strong>
+              </div>
+              <div>
+                <span>Version</span>
+                <strong>{demo.current.modelSignal.modelVersion}</strong>
+              </div>
+            </div>
+            <div className="signal-tags">
+              {demo.current.modelSignal.importantSignals.map((signal) => (
+                <span key={signal}>{signal.replaceAll('_', ' ')}</span>
+              ))}
+            </div>
+            <small className="model-signal-note">{demo.current.modelSignal.calibrationNote}</small>
           </div>
         </div>
         <div className="pipeline-card">
@@ -353,7 +379,7 @@ export function App() {
                 <strong>{demo.outcome.status.replaceAll('_', ' ')}</strong>
                 <p>
                   {demo.outcome.status === 'RECOVERED'
-                    ? `${formatMoney(demo.outcome.recoveredAmountPaise)} verified by ${demo.outcome.verification}.`
+                    ? `${formatSimulatedValue(demo.outcome.recoveredAmountPaise)} verified by ${demo.outcome.verification}.`
                     : demo.outcome.reason}
                 </p>
               </>
@@ -379,8 +405,8 @@ export function App() {
           <div className="metric-grid">
             <div className="impact-metric featured">
               <span>Demo recovered value</span>
-              <strong>{formatMoney(demo.batch.runtime.recoveredValuePaise)}</strong>
-              <small>DEMO / SIMULATION</small>
+              <strong>{formatSimulatedValue(demo.batch.runtime.recoveredValuePaise)}</strong>
+              <small>DEMO / SIMULATION · PAISE-LIKE UNITS</small>
             </div>
             <div className="impact-metric">
               <span>Candidates</span>
@@ -438,17 +464,17 @@ export function App() {
                     <div
                       className="bar flow-bar"
                       style={{ width: `${(point.flowGuardPaise / maxValue) * 100}%` }}
-                      title={`FlowGuard ${formatMoney(point.flowGuardPaise)}`}
+                      title={`FlowGuard ${formatSimulatedValue(point.flowGuardPaise)}`}
                     />
                     <div
                       className="bar base-bar"
                       style={{ width: `${(point.baselinePaise / maxValue) * 100}%` }}
-                      title={`Baseline ${formatMoney(point.baselinePaise)}`}
+                      title={`Baseline ${formatSimulatedValue(point.baselinePaise)}`}
                     />
                   </div>
                   <div className="chart-values">
-                    <strong>{formatMoney(point.flowGuardPaise)}</strong>
-                    <small>{formatMoney(point.baselinePaise)} baseline</small>
+                    <strong>{formatSimulatedValue(point.flowGuardPaise)}</strong>
+                    <small>{formatSimulatedValue(point.baselinePaise)} baseline</small>
                   </div>
                 </div>
               ))}
@@ -486,6 +512,13 @@ export function App() {
             Choose any scenario above to reset the same flow and see a deterministic safe stop:
             policy rejection, abstention, duplicate prevention, expiry or verification failure.
           </p>
+          <div className="retry-note">
+            <span className="label">WHY NOT JUST RETRY?</span>
+            <p>
+              A fixed retry spends limited intervention budget without ranking opportunity value.
+              Timing, approval, duplicate state and verified outcomes matter.
+            </p>
+          </div>
           <div className="safety-list">
             <span>
               <b>ABSTAINED</b> Low confidence

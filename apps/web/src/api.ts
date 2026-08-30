@@ -32,6 +32,14 @@ export type DemoState = {
     state: string;
     reasonCodes: string[];
     reason: string;
+    modelSignal: {
+      modelType: string;
+      estimatedProbability: number;
+      importantSignals: string[];
+      modelVersion: string;
+      provenance: string;
+      calibrationNote: string;
+    };
   };
   pipeline: { key: string; label: string; status: 'active' | 'complete' | 'blocked' | 'pending' }[];
   approvalPayload: {
