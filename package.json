@@ -13,9 +13,12 @@
     "dev:web": "npm --workspace @flowguard/web run dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "generate-data": "tsx evaluation/scripts/generate-data.ts",
     "lint": "eslint .",
     "test": "vitest run",
-    "typecheck": "npm run typecheck --workspaces"
+    "typecheck": "npm run typecheck --workspaces && npm run typecheck:evaluation",
+    "typecheck:evaluation": "tsc --noEmit -p evaluation/tsconfig.json",
+    "validate-data": "tsx evaluation/scripts/validate-data.ts"
   },
   "devDependencies": {
     "@eslint/js": "latest",

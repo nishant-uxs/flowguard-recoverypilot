@@ -42,6 +42,17 @@ npm run lint
 npm test
 ```
 
+Generate and validate the M2 temporal dataset:
+
+```bash
+npm run generate-data -- --seed 42
+npm run validate-data
+npm run validate-data -- --merchant mrc_001
+```
+
+Generated artifacts are written to the ignored
+`evaluation/datasets/generated/` directory.
+
 Start the API and web app in separate terminals:
 
 ```bash

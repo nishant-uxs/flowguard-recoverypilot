@@ -70,3 +70,21 @@ Razorpay Test Mode implementations.
 - Duplicate requests are rejected deterministically.
 - Every state transition is recorded in the audit ledger.
 - The evaluation command is replayable from a fixed seed and versioned data.
+
+## M2 temporal data boundary
+
+`evaluation/generator/temporal-dataset.ts` produces observable
+`PaymentEvent[]` data from latent merchant/segment state. The latent state
+drives correlated changes in failure rate, latency and volume over five-minute
+windows, but is kept in a separate truth artifact.
+
+The default target is the UPI Intent segment. Other segments are generated with
+their own heterogeneous baselines and act as controls; they do not receive the
+target degradation scenario. Degraded merchants vary in start time, duration,
+noise and natural recovery.
+
+The raw export, hidden truth and temporal split manifest are separate files.
+This prevents future degradation labels and outcomes from entering the event
+contract. The generator uses a fixed seed, random non-semantic IDs and
+merchant-aware profile assignment so repeated runs are identical without
+encoding the label in an identifier.
