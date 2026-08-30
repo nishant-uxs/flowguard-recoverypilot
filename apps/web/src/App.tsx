@@ -52,16 +52,18 @@ function SectionHeading({
   eyebrow,
   title,
   detail,
+  headingId,
 }: {
   eyebrow: string;
   title: string;
   detail?: string;
+  headingId?: string;
 }) {
   return (
     <div className="section-heading">
       <div>
         <p className="eyebrow">{eyebrow}</p>
-        <h2>{title}</h2>
+        <h2 id={headingId}>{title}</h2>
       </div>
       {detail ? <p className="section-detail">{detail}</p> : null}
     </div>
@@ -212,6 +214,7 @@ export function App() {
             eyebrow="WHAT IS HAPPENING?"
             title="A merchant is drifting into UPI Intent degradation."
             detail={`Source event ${demo.current.paymentReference}`}
+            headingId="opportunity-heading"
           />
           <div className="opportunity-value">
             <span>Expected recovery opportunity</span>
@@ -370,6 +373,7 @@ export function App() {
           eyebrow="BATCH IMPACT"
           title="Opportunity ranking compounds at scale."
           detail="FlowGuard vs fixed input-order baseline"
+          headingId="impact-heading"
         />
         <div className="impact-layout">
           <div className="metric-grid">
@@ -514,8 +518,9 @@ export function App() {
         <SectionHeading
           eyebrow="HOW FLOWGUARD WORKS"
           title="A controlled path from signal to value."
+          headingId="how-heading"
         />
-        <div className="how-grid" id="how-heading">
+        <div className="how-grid">
           {[
             ['01', 'DETECT', 'Detect payment degradation.'],
             ['02', 'QUANTIFY', 'Estimate recovery opportunity.'],
