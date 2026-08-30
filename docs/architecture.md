@@ -101,3 +101,19 @@ The detector receives only chronologically available observations. Truth
 intervals are used by the evaluation layer only, never by the detector. The
 naive comparator is a global rolling failure-rate threshold. Both use the same
 episode-level evaluation protocol and untouched test period.
+
+## M4 ML experiment boundary
+
+The ML experiment is isolated under `evaluation/ml`. It consumes four
+five-minute feature windows and predicts degradation onset during the next
+30 minutes. Feature construction is past-only and excludes merchant IDs,
+scenario labels and future aggregates. The training split excludes the
+merchant holdout; validation selects probability thresholds and test is read
+only after the operating point is frozen.
+
+The first model is class-weighted logistic regression over flattened temporal
+features. A single small GRU is evaluated separately as a sequence model. The
+GRU is an offline experiment, not a runtime dependency or a recovery policy.
+The local run used CPU because the installed PyTorch build exposed no CUDA
+device. No model is allowed to trigger payments, call an LLM or bypass the
+future recovery approval boundary.

@@ -6,9 +6,9 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M3 is complete: the reproducible temporal dataset and interpretable
-EWMA/CUSUM baseline are available. ML, LLM, Razorpay integration and the
-dashboard are intentionally not implemented yet.
+M4 is complete: the reproducible temporal dataset, interpretable baseline and
+offline ML experiment are available. Recovery actions, LLM, Razorpay
+integration and the dashboard are intentionally not implemented yet.
 
 ## Product decision
 
@@ -50,6 +50,7 @@ npm run generate-data -- --seed 42
 npm run validate-data
 npm run validate-data -- --merchant mrc_001
 npm run evaluate:baseline
+npm run evaluate:ml
 ```
 
 Generated artifacts are written to the ignored

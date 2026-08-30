@@ -136,3 +136,42 @@ npm run evaluate:baseline
 This writes ignored machine-readable and human-readable artifacts to
 `evaluation/results/`. The baseline is intentionally interpretable and exists
 to establish whether more complex ML provides measurable incremental value.
+
+## M4 temporal ML experiment
+
+M4 adds supervised models only as an experiment against the M3 reference. The
+feature pipeline builds four chronological five-minute inputs and labels each
+prediction from future degradation onset in the next six windows. Inputs stop
+at the prediction timestamp; labels are never passed to feature construction.
+
+The feature set contains transaction count, smoothed failure/success rates,
+latency p50/p95/standard deviation, amount and retry statistics, rolling
+statistics, deltas, slopes and merchant-relative z-scores. Merchant IDs,
+scenario labels and future aggregates are excluded. Feature scaling and
+operating thresholds are fitted on training/validation data only.
+
+The first supervised model is a deterministic, class-weighted logistic
+regression over flattened sequences. The neural experiment is one small
+PyTorch GRU over the same sequences. The local environment reported
+`torch 2.12.0+cpu` and no CUDA device, so the experiment records CPU execution
+and makes no GPU claim. It does not store a checkpoint.
+
+The same episode-level metrics, persistence and cooldown are used for naive,
+EWMA/CUSUM, logistic and GRU outputs. Probability models additionally report
+Brier score and expected calibration error. Thresholds are selected on known
+validation merchants, then frozen for test. The 18-merchant holdout is
+reported separately, but its single degradation episode is statistically
+insufficient for a generalization claim. Shifted-pattern results are not
+fabricated because the M2 generator currently exposes only one degradation
+mechanism.
+
+Run the experiment with:
+
+```bash
+npm run evaluate:ml
+```
+
+It writes ignored `evaluation/results/ml-experiment.json` and
+`evaluation/results/ml-experiment-report.md`. The baseline remains the
+reference: a neural model earns inclusion only through meaningful improvement
+in early detection and episode recall without unacceptable false alerts.
