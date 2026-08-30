@@ -16,6 +16,7 @@
     "generator/**/*.ts",
     "ml/**/*.ts",
     "recovery/**/*.ts",
+    "recovery-value/**/*.ts",
     "scripts/**/*.ts"
   ]
 }

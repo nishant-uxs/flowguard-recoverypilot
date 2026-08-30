@@ -21,3 +21,5 @@ evaluation/results/generalization-neural-input.json
 evaluation/results/generalization-neural-output.json
 evaluation/results/recovery-batch.json
 evaluation/results/recovery-batch-report.md
+evaluation/results/recovery-value-report.json
+evaluation/results/recovery-value-report.md
