@@ -15,6 +15,7 @@
     "generalization/**/*.ts",
     "generator/**/*.ts",
     "ml/**/*.ts",
+    "recovery/**/*.ts",
     "scripts/**/*.ts"
   ]
 }

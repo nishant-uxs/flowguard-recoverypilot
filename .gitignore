@@ -19,3 +19,5 @@ evaluation/results/generalization-report.md
 evaluation/results/experiment-manifest.json
 evaluation/results/generalization-neural-input.json
 evaluation/results/generalization-neural-output.json
+evaluation/results/recovery-batch.json
+evaluation/results/recovery-batch-report.md

@@ -18,6 +18,7 @@
     "evaluate:baseline": "tsx evaluation/baseline/run-baseline.ts",
     "evaluate:ml": "tsx evaluation/ml/run-experiment.ts",
     "evaluate:generalization": "tsx evaluation/generalization/run-generalization.ts",
+    "evaluate:recovery": "tsx evaluation/recovery/batch.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces && npm run typecheck:evaluation",
