@@ -6,11 +6,12 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M7 is complete: the original v1 evaluation remains reproducible, M4.5
+M8 is complete: the original v1 evaluation remains reproducible, M4.5
 provides independent merchant-disjoint evaluation, M5/M6 provide a bounded
-simulated recovery loop plus opportunity-value ranking, and M7 adds explicit
-orchestration with an explanation-only LLM boundary. The dashboard and
-production Razorpay operations are intentionally not implemented.
+simulated recovery loop plus opportunity-value ranking, M7 adds explicit
+orchestration with an explanation-only LLM boundary, and M8 provides the
+judge-ready Control Tower demo. Production Razorpay operations remain
+intentionally disabled.
 
 ## Product decision
 
@@ -73,7 +74,10 @@ npm run dev:web
 ```
 
 The API health endpoint is available at `http://localhost:3001/health`.
-The web foundation is available at the Vite development URL shown in the terminal.
+The FlowGuard Control Tower is available at the Vite development URL shown in
+the terminal. The local demo API exposes `/demo/state`, `/demo/scenario`,
+`/demo/reset`, `/recovery/:id/approve`, `/recovery/:id/reject` and `/audit`.
+See [docs/demo-script.md](docs/demo-script.md) for the judge flow.
 
 ## Environment
 
