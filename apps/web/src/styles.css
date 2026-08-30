@@ -40,6 +40,11 @@
   box-sizing: border-box;
 }
 
+html {
+  background: var(--bg);
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -56,6 +61,7 @@ summary:focus-visible {
 }
 
 .shell {
+  animation: scenario-enter 360ms ease-out both;
   margin: 0 auto;
   max-width: 1440px;
   padding: 24px 36px 48px;
@@ -83,6 +89,7 @@ summary:focus-visible {
 }
 
 .topbar {
+  animation: panel-enter 360ms ease-out both;
   border-bottom: 1px solid var(--line);
   justify-content: space-between;
   padding-bottom: 20px;
@@ -139,6 +146,7 @@ summary:focus-visible {
 
 .intro {
   align-items: end;
+  animation: panel-enter 420ms ease-out 45ms both;
   display: grid;
   gap: 40px;
   grid-template-columns: minmax(0, 1fr) 240px;
@@ -283,6 +291,7 @@ h3 {
 }
 
 .status-grid {
+  animation: panel-enter 420ms ease-out 90ms both;
   display: grid;
   gap: 1px;
   grid-template-columns: repeat(5, 1fr);
@@ -296,6 +305,14 @@ h3 {
   min-height: 72px;
   padding: 14px;
   align-items: flex-start;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.status-chip:hover {
+  background: #14202c;
+  transform: translateY(-1px);
 }
 
 .status-chip > span {
@@ -324,6 +341,7 @@ h3 {
 }
 
 .scenario-strip {
+  animation: panel-enter 420ms ease-out 120ms both;
   gap: 30px;
   justify-content: space-between;
   margin-top: 16px;
@@ -364,6 +382,12 @@ h3 {
 
 .scenario-button:hover {
   transform: translateY(-1px);
+}
+
+.scenario-button:active,
+.primary-button:active,
+.secondary-button:active {
+  transform: translateY(1px) scale(0.99);
 }
 
 .scenario-button:disabled {
@@ -589,8 +613,19 @@ h3 {
 
 .signal-tags span {
   color: var(--blue);
+  cursor: help;
   font-size: 9px;
+  transition:
+    color var(--transition),
+    transform var(--transition);
   text-transform: capitalize;
+}
+
+.signal-tags span:hover,
+.signal-tags span:focus-visible {
+  color: var(--white);
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .model-signal-note {
@@ -615,6 +650,7 @@ h3 {
 
 .pipeline-step {
   align-items: center;
+  animation: pipeline-enter 420ms ease-out both;
   border-bottom: 0;
   color: var(--muted);
   display: flex;
@@ -625,6 +661,42 @@ h3 {
   padding: 9px 8px 12px;
   position: relative;
   text-align: center;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.pipeline-step:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.pipeline-step:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.pipeline-step:nth-child(4) {
+  animation-delay: 135ms;
+}
+
+.pipeline-step:nth-child(5) {
+  animation-delay: 180ms;
+}
+
+.pipeline-step:nth-child(6) {
+  animation-delay: 225ms;
+}
+
+.pipeline-step:nth-child(7) {
+  animation-delay: 270ms;
+}
+
+.pipeline-step:nth-child(8) {
+  animation-delay: 315ms;
+}
+
+.pipeline-step:hover {
+  background: rgb(119 184 255 / 5%);
+  transform: translateY(-2px);
 }
 
 .pipeline-step:not(:last-child)::after {
@@ -938,6 +1010,32 @@ h3 {
   padding: 15px;
 }
 
+.outcome-block.outcome-rejected,
+.outcome-block.outcome-abstained,
+.outcome-block.outcome-failed,
+.outcome-block.outcome-expired {
+  animation: safe-stop 420ms ease-out both;
+  border-left: 2px solid var(--red);
+}
+
+.outcome-block.outcome-pending_verification {
+  border-left: 2px solid var(--blue);
+  animation: safe-stop 420ms ease-out both;
+}
+
+.outcome-block.outcome-already_recovered {
+  border-left: 2px solid var(--amber);
+  animation: safe-stop 420ms ease-out both;
+}
+
+.outcome-block.outcome-recovered {
+  border-left: 2px solid var(--mint);
+}
+
+.outcome-block.outcome-awaiting_merchant_approval {
+  border-left: 2px solid var(--blue);
+}
+
 .recovered-panel .outcome-block {
   animation: verified-reveal 520ms ease-out both;
 }
@@ -985,6 +1083,14 @@ h3 {
 .impact-metric {
   background: #0e161e;
   padding: 14px;
+  transition:
+    background var(--transition),
+    transform var(--transition);
+}
+
+.impact-metric:hover {
+  background: #111d28;
+  transform: translateY(-2px);
 }
 
 .impact-metric.featured {
@@ -999,6 +1105,7 @@ h3 {
 }
 
 .impact-metric strong {
+  animation: metric-update 360ms ease-out both;
   color: var(--white);
   display: block;
   font-size: 21px;
@@ -1077,6 +1184,7 @@ h3 {
 }
 
 .bar {
+  animation: bar-grow 700ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
   height: 9px;
   left: 0;
   position: absolute;
@@ -1089,6 +1197,7 @@ h3 {
 
 .base-bar {
   background: #607083;
+  animation-delay: 90ms;
   top: 11px;
 }
 
@@ -1138,10 +1247,31 @@ h3 {
 
 .audit-list li {
   align-items: flex-start;
+  animation: audit-enter 380ms ease-out both;
   display: grid;
   gap: 11px;
   grid-template-columns: 64px 8px 1fr;
   min-height: 44px;
+}
+
+.audit-list li:nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.audit-list li:nth-child(3) {
+  animation-delay: 70ms;
+}
+
+.audit-list li:nth-child(4) {
+  animation-delay: 105ms;
+}
+
+.audit-list li:nth-child(5) {
+  animation-delay: 140ms;
+}
+
+.audit-event.newest {
+  animation: newest-event 900ms ease-out both;
 }
 
 .audit-list time,
@@ -1347,18 +1477,73 @@ summary {
   height: 13px;
 }
 
-.loading-skeleton span:nth-child(2) {
+.skeleton-line-short {
+  max-width: 36%;
+}
+
+.loading-skeleton > .skeleton-line:nth-child(2) {
   max-width: 82%;
 }
 
-.loading-skeleton span:nth-child(3) {
-  max-width: 64%;
+.skeleton-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+}
+
+.skeleton-card span:first-child {
+  max-width: 28%;
+}
+
+.skeleton-card span:nth-child(2) {
+  height: 30px;
+  max-width: 74%;
+}
+
+.skeleton-card span:nth-child(3) {
+  max-width: 48%;
+}
+
+.skeleton-pipeline {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.skeleton-pipeline span {
+  border-radius: 999px;
+  height: 9px;
 }
 
 @keyframes panel-enter {
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scenario-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pipeline-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -1374,6 +1559,63 @@ summary {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes safe-stop {
+  from {
+    opacity: 0.55;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes metric-update {
+  from {
+    opacity: 0.45;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes audit-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes newest-event {
+  0% {
+    background: rgb(119 184 255 / 8%);
+    opacity: 0.5;
+    transform: translateX(-5px);
+  }
+  100% {
+    background: transparent;
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

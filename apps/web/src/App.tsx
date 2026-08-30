@@ -28,6 +28,14 @@ function formatPercent(value: number) {
   return `${(value * 100).toFixed(0)}%`;
 }
 
+function signalHint(signal: string) {
+  const hints: Record<string, string> = {
+    failure_rate_above_baseline: 'Observed failure rate is above this merchant segment baseline.',
+    latency_above_baseline: 'Observed latency is above this merchant segment baseline.',
+  };
+  return hints[signal] ?? 'Decision-time signal supplied to the opportunity scorer.';
+}
+
 function shortTime(timestamp: string) {
   return new Date(timestamp).toLocaleTimeString([], {
     hour: '2-digit',
@@ -141,9 +149,18 @@ export function App() {
         <p className="eyebrow">FLOWGUARD · CONTROL TOWER</p>
         <h1>Connecting to the deterministic demo…</h1>
         <div className="loading-skeleton" aria-label="Loading demo state">
-          <span />
-          <span />
-          <span />
+          <span className="skeleton-line skeleton-line-short" />
+          <span className="skeleton-line" />
+          <div className="skeleton-card">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="skeleton-pipeline">
+            {Array.from({ length: 4 }, (_, index) => (
+              <span key={index} />
+            ))}
+          </div>
         </div>
         {error ? (
           <div className="error-banner" role="alert">
@@ -159,12 +176,22 @@ export function App() {
 
   const awaitingApproval = demo.current.state === 'AWAITING_MERCHANT_APPROVAL';
   const recovered = demo.outcome?.status === 'RECOVERED';
+  const approvalLabel =
+    busy && awaitingApproval
+      ? 'Approving…'
+      : recovered
+        ? 'Recovery verified'
+        : awaitingApproval
+          ? 'Approve recovery'
+          : demo.outcome
+            ? 'Action complete'
+            : 'Approved';
   const maxValue = Math.max(
     ...demo.batch.syntheticEvaluation.budgetCurve.map((point) => point.flowGuardPaise),
   );
 
   return (
-    <main className="shell">
+    <main className="shell" key={demo.scenario}>
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">FG</span>
@@ -301,7 +328,9 @@ export function App() {
             </div>
             <div className="signal-tags">
               {demo.current.modelSignal.importantSignals.map((signal) => (
-                <span key={signal}>{signal.replaceAll('_', ' ')}</span>
+                <span key={signal} title={signalHint(signal)}>
+                  {signal.replaceAll('_', ' ')}
+                </span>
               ))}
             </div>
             <small className="model-signal-note">{demo.current.modelSignal.calibrationNote}</small>
@@ -311,7 +340,7 @@ export function App() {
           <SectionHeading eyebrow="RECOVERY PIPELINE" title="Every step is visible." />
           <ol className="pipeline">
             {demo.pipeline.map((step) => (
-              <li className={`pipeline-step ${step.status}`} key={step.key}>
+              <li className={`pipeline-step ${step.status}`} key={`${step.key}-${step.status}`}>
                 <span className="pipeline-node">
                   <PipelineIcon status={step.status} />
                 </span>
@@ -369,12 +398,13 @@ export function App() {
           </div>
           <div className="approval-actions">
             <button
+              aria-busy={busy && awaitingApproval}
               className="primary-button"
               disabled={!awaitingApproval || busy}
               onClick={() => void decide('approve')}
               type="button"
             >
-              Approve recovery <span>→</span>
+              {approvalLabel} <span>→</span>
             </button>
             <button
               className="secondary-button"
@@ -406,7 +436,12 @@ export function App() {
               {demo.explanation.source === 'llm' ? 'LLM · VALIDATED' : 'DETERMINISTIC FALLBACK'}
             </strong>
           </div>
-          <div className="outcome-block" aria-live="polite" aria-atomic="true" role="status">
+          <div
+            className={`outcome-block outcome-${demo.outcome?.status.toLowerCase() ?? 'awaiting_merchant_approval'}`}
+            aria-live="polite"
+            aria-atomic="true"
+            role="status"
+          >
             {demo.outcome ? (
               <>
                 <span className="label">RECOVERY OUTCOME</span>
@@ -439,37 +474,47 @@ export function App() {
           <div className="metric-grid">
             <div className="impact-metric featured">
               <span>Demo recovered value</span>
-              <strong>{formatSimulatedValue(demo.batch.runtime.recoveredValuePaise)}</strong>
+              <strong key={demo.batch.runtime.recoveredValuePaise}>
+                {formatSimulatedValue(demo.batch.runtime.recoveredValuePaise)}
+              </strong>
               <small>DEMO / SIMULATION · PAISE-LIKE UNITS</small>
             </div>
             <div className="impact-metric">
               <span>Candidates</span>
-              <strong>{demo.batch.runtime.candidates}</strong>
+              <strong key={demo.batch.runtime.candidates}>{demo.batch.runtime.candidates}</strong>
               <small>Current run</small>
             </div>
             <div className="impact-metric">
               <span>Interventions</span>
-              <strong>{demo.batch.runtime.interventions}</strong>
+              <strong key={demo.batch.runtime.interventions}>
+                {demo.batch.runtime.interventions}
+              </strong>
               <small>Bounded attempts</small>
             </div>
             <div className="impact-metric">
               <span>Abstentions</span>
-              <strong>{demo.batch.runtime.abstentions}</strong>
+              <strong key={demo.batch.runtime.abstentions}>{demo.batch.runtime.abstentions}</strong>
               <small>Policy controlled</small>
             </div>
             <div className="impact-metric">
               <span>Duplicates blocked</span>
-              <strong>{demo.batch.runtime.duplicateActionsPrevented}</strong>
+              <strong key={demo.batch.runtime.duplicateActionsPrevented}>
+                {demo.batch.runtime.duplicateActionsPrevented}
+              </strong>
               <small>Idempotency</small>
             </div>
             <div className="impact-metric">
               <span>Success rate</span>
-              <strong>{formatPercent(demo.batch.runtime.recoverySuccessRate)}</strong>
+              <strong key={demo.batch.runtime.recoverySuccessRate}>
+                {formatPercent(demo.batch.runtime.recoverySuccessRate)}
+              </strong>
               <small>Verified recoveries</small>
             </div>
             <div className="impact-metric">
               <span>False interventions avoided</span>
-              <strong>{demo.batch.runtime.falseInterventionsAvoided}</strong>
+              <strong key={demo.batch.runtime.falseInterventionsAvoided}>
+                {demo.batch.runtime.falseInterventionsAvoided}
+              </strong>
               <small>Policy controlled</small>
             </div>
           </div>
@@ -526,8 +571,11 @@ export function App() {
             detail={`${demo.audit.length} events`}
           />
           <ol className="audit-list">
-            {demo.audit.map((event) => (
-              <li key={`${event.sequence}-${event.eventType}`}>
+            {demo.audit.map((event, index) => (
+              <li
+                className={index === demo.audit.length - 1 ? 'audit-event newest' : 'audit-event'}
+                key={`${event.sequence}-${event.eventType}`}
+              >
                 <time>{shortTime(event.timestamp)}</time>
                 <span className="audit-line" aria-hidden="true" />
                 <div>
