@@ -16,6 +16,21 @@ export {
   recoveryRecommendationSchema,
 } from './recovery.js';
 
+export {
+  EXPLANATION_SYSTEM_PROMPT_V1,
+  explainRecovery,
+  explanationInputForOutcome,
+  llmExplanationInputSchema,
+  llmExplanationOutputSchema,
+} from './explanation.js';
+
+export {
+  RecoveryOrchestrator,
+  assertValidTransition,
+  canTransition,
+  recoveryOrchestrationInputSchema,
+} from './orchestrator.js';
+
 export type {
   ExecutorCreateResult,
   ExecutorVerificationResult,
@@ -34,3 +49,19 @@ export type {
   RecoveryActionType,
   SimulationScenario,
 } from './recovery.js';
+
+export type {
+  ExplanationProvider,
+  ExplanationResult,
+  LlmExplanationInput,
+  LlmExplanationOutput,
+} from './explanation.js';
+
+export type {
+  OrchestrationEvent,
+  RecoveryDetection,
+  RecoveryOpportunityScore,
+  RecoveryOrchestrationInput,
+  RecoveryOrchestrationResult,
+  RecoveryState,
+} from './orchestrator.js';

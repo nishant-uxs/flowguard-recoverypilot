@@ -216,9 +216,10 @@ async function runStrategy(
   ) as Record<string, SimulationScenario>;
   const executor = new SimulationRecoveryExecutor({ seed: 55, outcomes });
   const policy = flowguard
-    ? DEFAULT_POLICY_CONFIG
+    ? { ...DEFAULT_POLICY_CONFIG, cooldownMinutes: 0 }
     : {
         ...DEFAULT_POLICY_CONFIG,
+        cooldownMinutes: 0,
         minimumRiskScore: 0,
         minimumExpectedRecoveryValuePaise: -Number.MAX_SAFE_INTEGER,
         maximumRecoverableAmountPaise: Number.MAX_SAFE_INTEGER,

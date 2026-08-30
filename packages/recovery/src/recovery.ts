@@ -114,6 +114,7 @@ export type PolicyConfig = {
   maximumRecoverableAmountPaise: number;
   actionTtlMinutes: number;
   maximumAttempts: number;
+  cooldownMinutes: number;
 };
 
 export const DEFAULT_POLICY_CONFIG: PolicyConfig = {
@@ -122,6 +123,7 @@ export const DEFAULT_POLICY_CONFIG: PolicyConfig = {
   maximumRecoverableAmountPaise: 500_000,
   actionTtlMinutes: 30,
   maximumAttempts: 1,
+  cooldownMinutes: 30,
 };
 
 export type PolicyDecision = {
@@ -134,7 +136,8 @@ export type PolicyDecision = {
     | 'approval_rejected'
     | 'approval_unavailable'
     | 'already_recovered'
-    | 'maximum_attempts';
+    | 'maximum_attempts'
+    | 'cooldown_active';
 };
 
 export type ExecutorCreateResult = {
@@ -201,7 +204,11 @@ export function evaluateRecoveryPolicy(
   recommendation: RecoveryRecommendation,
   approval: MerchantApproval,
   config: PolicyConfig = DEFAULT_POLICY_CONFIG,
-  context: { alreadyRecovered?: boolean; attempts?: number } = {},
+  context: {
+    alreadyRecovered?: boolean;
+    attempts?: number;
+    cooldownActive?: boolean;
+  } = {},
 ): PolicyDecision {
   if (context.alreadyRecovered) return { decision: 'rejected', reason: 'already_recovered' };
   if ((context.attempts ?? 0) >= config.maximumAttempts) {
@@ -209,6 +216,9 @@ export function evaluateRecoveryPolicy(
   }
   if (approval === 'unavailable') return { decision: 'abstained', reason: 'approval_unavailable' };
   if (approval === 'rejected') return { decision: 'rejected', reason: 'approval_rejected' };
+  if (context.cooldownActive && config.cooldownMinutes > 0) {
+    return { decision: 'abstained', reason: 'cooldown_active' };
+  }
   if (recommendation.confidence < config.minimumRiskScore) {
     return { decision: 'abstained', reason: 'low_confidence' };
   }
@@ -516,6 +526,7 @@ function outcomeFor(
 export class RecoveryService {
   private readonly actions = new Map<string, RecoveryAction>();
   private readonly outcomes = new Map<string, RecoveryOutcome>();
+  private readonly lastActionAtByMerchant = new Map<string, string>();
   private readonly audit: RecoveryAuditEvent[] = [];
   private readonly executor: RecoveryExecutor;
   private readonly policy: PolicyConfig;
@@ -529,6 +540,10 @@ export class RecoveryService {
     this.executor = options.executor;
     this.policy = options.policy ?? DEFAULT_POLICY_CONFIG;
     this.clock = options.clock ?? (() => new Date().toISOString());
+  }
+
+  getPolicy(): PolicyConfig {
+    return { ...this.policy };
   }
 
   private append(
@@ -573,6 +588,113 @@ export class RecoveryService {
     };
   }
 
+  private async reconcileInFlight(
+    candidate: RecoveryCandidate,
+    recommendation: RecoveryRecommendation,
+    existing: RecoveryAction,
+    now: string,
+  ): Promise<RecoveryJourney> {
+    let action = existing;
+    if (existing.status === 'VERIFICATION_PENDING' && existing.providerReference !== undefined) {
+      try {
+        const verification = await this.executor.verifyRecovery(action, candidate, {
+          status: 'created',
+          providerReference: existing.providerReference,
+        });
+        const mappedStatus: RecoveryOutcomeStatus =
+          verification.status === 'recovered'
+            ? 'RECOVERED'
+            : verification.status === 'already_recovered'
+              ? 'ALREADY_RECOVERED'
+              : verification.status === 'expired'
+                ? 'EXPIRED'
+                : verification.status === 'pending'
+                  ? 'PENDING'
+                  : 'FAILED';
+        const boundedRecoveredAmount = Math.min(
+          candidate.recoverableAmountPaise,
+          Math.max(0, verification.recoveredAmountPaise),
+        );
+        action = recoveryActionSchema.parse({
+          ...action,
+          status:
+            mappedStatus === 'RECOVERED'
+              ? 'RECOVERED'
+              : mappedStatus === 'PENDING'
+                ? 'VERIFICATION_PENDING'
+                : mappedStatus,
+        });
+        this.actions.set(action.idempotencyKey, action);
+        this.append(
+          'verification_recorded',
+          action,
+          candidate,
+          {
+            status: mappedStatus,
+            recoveredAmountPaise: boundedRecoveredAmount,
+            reason: verification.reason,
+          },
+          now,
+        );
+        const outcome = outcomeFor(
+          action.actionId,
+          mappedStatus,
+          verification.reason,
+          now,
+          boundedRecoveredAmount,
+          verification.verificationMethod ?? 'idempotency',
+        );
+        this.outcomes.set(action.idempotencyKey, outcome);
+        this.append(
+          'outcome_recorded',
+          action,
+          candidate,
+          { status: outcome.status, recoveredAmountPaise: boundedRecoveredAmount },
+          now,
+        );
+        return this.journey(candidate, recommendation, action, outcome, true);
+      } catch (error) {
+        action = recoveryActionSchema.parse({ ...action, status: 'FAILED' });
+        this.actions.set(action.idempotencyKey, action);
+        const outcome = outcomeFor(
+          action.actionId,
+          'FAILED',
+          error instanceof Error ? error.message : 'in-flight verification error',
+          now,
+          0,
+          'idempotency',
+        );
+        this.outcomes.set(action.idempotencyKey, outcome);
+        this.append('executor_error', action, candidate, { reason: outcome.reason }, now);
+        this.append('outcome_recorded', action, candidate, { status: outcome.status }, now);
+        return this.journey(candidate, recommendation, action, outcome, true);
+      }
+    }
+
+    action = recoveryActionSchema.parse({
+      ...action,
+      status: 'VERIFICATION_PENDING',
+    });
+    this.actions.set(action.idempotencyKey, action);
+    const outcome = outcomeFor(
+      action.actionId,
+      'PENDING',
+      'existing execution has no provider reference; no duplicate action was created',
+      now,
+      0,
+      'idempotency',
+    );
+    this.outcomes.set(action.idempotencyKey, outcome);
+    this.append(
+      'outcome_recorded',
+      action,
+      candidate,
+      { status: outcome.status, reason: outcome.reason },
+      now,
+    );
+    return this.journey(candidate, recommendation, action, outcome, true);
+  }
+
   async submit(
     candidateInput: RecoveryCandidate,
     options: {
@@ -587,7 +709,24 @@ export class RecoveryService {
     const idempotencyKey = recoveryIdempotencyKey(candidate);
     const existing = this.actions.get(idempotencyKey);
     if (existing) {
-      const outcome = this.outcomes.get(idempotencyKey)!;
+      const recordedOutcome = this.outcomes.get(idempotencyKey);
+      if (recordedOutcome === undefined) {
+        const reconciled = await this.reconcileInFlight(candidate, recommendation, existing, now);
+        this.append(
+          'duplicate_prevented',
+          reconciled.action,
+          candidate,
+          { existingActionId: reconciled.action.actionId, status: reconciled.action.status },
+          now,
+        );
+        return this.journey(
+          candidate,
+          recommendation,
+          reconciled.action,
+          reconciled.outcome,
+          true,
+        );
+      }
       this.append(
         'duplicate_prevented',
         existing,
@@ -595,7 +734,7 @@ export class RecoveryService {
         { existingActionId: existing.actionId, status: existing.status },
         now,
       );
-      return this.journey(candidate, recommendation, existing, outcome, true);
+      return this.journey(candidate, recommendation, existing, recordedOutcome, true);
     }
 
     let action = actionFor(candidate, now, this.policy, 'PENDING_APPROVAL');
@@ -623,7 +762,19 @@ export class RecoveryService {
       recommendation,
       options.merchantApproval,
       this.policy,
-      { alreadyRecovered: options.alreadyRecovered },
+      {
+        alreadyRecovered: options.alreadyRecovered,
+        cooldownActive:
+          this.policy.cooldownMinutes > 0 &&
+          (() => {
+            const lastActionAt = this.lastActionAtByMerchant.get(candidate.merchantId);
+            return (
+              lastActionAt !== undefined &&
+              new Date(now).getTime() <
+                new Date(lastActionAt).getTime() + this.policy.cooldownMinutes * 60_000
+            );
+          })(),
+      },
     );
     this.append('policy_decision', action, candidate, decision, now);
     this.append(
@@ -643,6 +794,7 @@ export class RecoveryService {
       return this.journey(candidate, recommendation, action, outcome, false);
     }
 
+    this.lastActionAtByMerchant.set(candidate.merchantId, now);
     action = recoveryActionSchema.parse({ ...action, status: 'APPROVED' });
     this.actions.set(idempotencyKey, action);
     this.append(

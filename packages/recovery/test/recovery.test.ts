@@ -221,6 +221,24 @@ describe('Razorpay TEST MODE adapter', () => {
       minimumRiskScore: 0.55,
       maximumAttempts: 1,
       actionTtlMinutes: 30,
+      cooldownMinutes: 30,
     });
+  });
+
+  it('enforces the merchant cooldown across different payment references', async () => {
+    const executor = new SimulationRecoveryExecutor({
+      outcomes: { payment_001: 'failed', payment_002: 'success' },
+    });
+    const service = new RecoveryService({ executor, clock: () => fixedNow });
+
+    await service.submit(candidate(), { merchantApproval: 'approved' });
+    const second = await service.submit(
+      candidate({ candidateId: 'candidate_002', paymentId: 'payment_002' }),
+      { merchantApproval: 'approved' },
+    );
+
+    expect(second.outcome.status).toBe('ABSTAINED');
+    expect(second.outcome.reason).toBe('cooldown_active');
+    expect(executor.createCalls).toBe(1);
   });
 });
