@@ -6,11 +6,11 @@ one safe, bounded recovery action in test mode or simulation.
 
 ## Status
 
-M4.5 is complete: the original v1 evaluation remains reproducible, and an
-independent merchant-disjoint, shifted-pattern evaluation protocol with
-lead-time-aware scoring, calibration, utility sensitivity and leakage audits
-is available. Recovery actions, LLM, Razorpay integration and the dashboard
-are intentionally not implemented yet.
+M5 is complete: the original v1 evaluation remains reproducible, M4.5 provides
+independent merchant-disjoint evaluation, and a bounded simulated recovery
+loop now covers approval, policy, idempotency, execution, verification and
+audit outcomes. The LLM, dashboard and production Razorpay operations are
+intentionally not implemented.
 
 ## Product decision
 
@@ -55,6 +55,7 @@ npm run evaluate:baseline
 npm run evaluate:ml
 npm run generate:generalization-data
 npm run evaluate:generalization
+npm run evaluate:recovery
 ```
 
 Generated artifacts are written to the ignored

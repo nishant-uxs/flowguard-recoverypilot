@@ -103,3 +103,20 @@ early warning, recall, false-alert control, shifted-merchant performance and
 calibration together. Otherwise the simpler model or deterministic baseline
 remains preferred. These synthetic results can support a bounded demo
 recovery layer, but cannot establish production readiness or revenue impact.
+
+## M5 recovery semantics
+
+The ML score is not an authorization signal. It becomes a
+`RecoveryCandidate`, then a structured recommendation with configurable
+expected value:
+
+```text
+expected value = estimated success probability × recoverable amount
+                − intervention cost
+```
+
+The deterministic policy can abstain on low confidence or low value and can
+reject amount-limit, approval, duplicate or attempt-limit violations. A
+merchant approval is required before the single bounded payment-link
+intervention. Verification, not link creation, produces a recovered outcome.
+The LLM remains intentionally unimplemented; it cannot execute payment tools.

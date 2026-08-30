@@ -232,3 +232,34 @@ comparisons, ablations, calibration, sensitivity and explicit limitations.
 The single-feature probe is a screening audit rather than proof against every
 multivariate artifact. Synthetic v2 evidence is not production readiness,
 revenue recovery, or proof of broad merchant generalization.
+
+## M5 bounded recovery batch
+
+M5 evaluates the recovery loop separately from detection quality. The selected
+action is exactly one merchant-approved payment-link attempt with a 30-minute
+expiry and one-attempt limit. A created link is an intervention, not recovered
+money. Recovery value is counted only after a verified `RECOVERED` outcome.
+
+The deterministic batch contains 120 cases covering success, failure,
+expiry, already-recovered payments, verification timeout, low confidence,
+low expected value, rejected/unavailable approval and duplicate submissions.
+The FlowGuard path uses the policy and idempotency ledger; the baseline is a
+fixed payment-link policy with the same simulated provider outcomes but no
+risk/value abstention and no cross-request idempotency ledger. Both report
+intervention rate, verified simulated value, failures, pending outcomes,
+policy decisions, false interventions, approvals, abstentions, expired
+actions, already-recovered outcomes and duplicate prevention.
+
+Run it with:
+
+```bash
+npm run evaluate:recovery
+```
+
+The ignored outputs are `evaluation/results/recovery-batch.json` and
+`recovery-batch-report.md`. All values are labeled `SIMULATED`; they are not
+Razorpay revenue. The current deterministic batch recovers 36,000 simulated
+paise-like units for both strategies, while FlowGuard reduces interventions
+from 110 to 80, eliminates 15 false interventions and prevents 15 duplicate
+actions. This is safety/value evidence for a bounded demo, not evidence of
+production economics.

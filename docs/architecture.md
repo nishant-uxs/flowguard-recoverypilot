@@ -141,3 +141,38 @@ layer is worth building, but M4.5 does not authorize production claims,
 payment execution, an LLM, or dashboard integration. The first GRU's perfect
 v1 F1 is explicitly treated as an evaluation warning rather than a product
 decision.
+
+## M5 recovery boundary
+
+The bounded recovery workflow lives behind `@flowguard/recovery`:
+
+```text
+RecoveryCandidate
+  -> RecoveryRecommendation
+  -> deterministic policy
+  -> merchant approval
+  -> RecoveryExecutor
+  -> verification
+  -> RecoveryOutcome + audit events
+```
+
+The quantitative model supplies a score and reasons only. Policy enforces
+minimum confidence, expected value, amount limit, one attempt and 30-minute
+expiry. Approval is explicit; rejection, abstention, duplicate prevention,
+expiry and verification timeout are terminally auditable outcomes.
+
+`SimulationRecoveryExecutor` is the deterministic default for the demo.
+`RazorpayTestRecoveryExecutor` is isolated behind the same interface and
+requires an `rzp_test_` key. It creates a Payment Link through
+`POST /v1/payment_links` and verifies it through the Payment Link fetch
+endpoint; only a paid link's verified `amount_paid` counts. The adapter does
+not claim that link creation is recovery and was not called by the batch.
+The implementation follows Razorpay's documented [Payment Links API](https://razorpay.com/docs/api/payments/payment-links/)
+and [Payment Link webhook events](https://razorpay.com/docs/webhooks/payment-links/);
+real credentials and merchant approval are required for a live TEST MODE run.
+
+The application-facing audit ledger is append-only from the service API and
+records candidate, recommendation, policy, approval, action, verification,
+outcome and duplicate events, including source event ID, payment, merchant,
+model version, score and idempotency key. The batch comparison is explicitly
+simulated; no production payment operation is enabled by M5.
