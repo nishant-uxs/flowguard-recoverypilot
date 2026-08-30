@@ -27,12 +27,15 @@ export type GeneralizationScenario = {
   naturalRecovery: boolean;
 };
 
+export type ScenarioFamily = 'TRAIN' | 'VALIDATION' | 'SHIFTED_TEST' | 'STRESS_TEST';
+
 export type GeneralizationDataset = Omit<GeneratedDataset, 'metadata' | 'truth'> & {
   metadata: GeneratedDataset['metadata'] & { schemaVersion: 'm4.5' };
   truth: Omit<GeneratedDataset['truth'], 'scenarios'> & {
     scenarios: GeneralizationScenario[];
     protocolVersion: 'm4.5-v2';
     mechanismFamilies: Record<GeneralizationMechanism, string>;
+    scenarioFamilies: Record<ScenarioFamily, GeneralizationMechanism[]>;
   };
 };
 
@@ -450,6 +453,12 @@ export function generateGeneralizationDataset(
       degradationIntervals: intervals,
       scenarios,
       mechanismFamilies: MECHANISM_FAMILIES,
+      scenarioFamilies: {
+        TRAIN: ['A', 'B', 'C'],
+        VALIDATION: ['A', 'B', 'C'],
+        SHIFTED_TEST: ['D', 'E', 'F'],
+        STRESS_TEST: ['G', 'H', 'I', 'J'],
+      },
     },
     splits: {
       temporalWindows: {

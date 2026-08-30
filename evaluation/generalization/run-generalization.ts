@@ -409,6 +409,9 @@ The first M4 GRU result (F1 1.000) was misleading: it detected episodes late (me
 - Temporal split: train ${dataset.splits.temporalWindows.train.startWindow}-${dataset.splits.temporalWindows.train.endWindowExclusive}, validation ${dataset.splits.temporalWindows.validation.startWindow}-${dataset.splits.temporalWindows.validation.endWindowExclusive}, test ${dataset.splits.temporalWindows.test.startWindow}-${dataset.splits.temporalWindows.test.endWindowExclusive}.
 - Sequence-boundary purge: ${4 - 1} input windows, so adjacent partitions do not reuse raw observation windows.
 - Training mechanisms: A/B/C. Shifted and stress mechanisms reserved for holdout: D/E/F/G/H/I/J.
+- Scenario families: ${Object.entries(dataset.truth.scenarioFamilies)
+    .map(([family, mechanisms]) => `${family}=${mechanisms.join('/')}`)
+    .join('; ')}.
 - Mechanisms: ${Object.entries(dataset.truth.mechanismFamilies)
     .map(([key, description]) => `${key} ${description}`)
     .join('; ')}.
@@ -518,6 +521,7 @@ export function runGeneralizationExperiment(): void {
     purgedSequenceBoundaryWindows: featureDataset.sequenceLength - 1,
     trainMechanisms: ['A', 'B', 'C'],
     shiftedMechanisms: ['D', 'E', 'F', 'G', 'H', 'I', 'J'],
+    scenarioFamilies: dataset.truth.scenarioFamilies,
     sequenceLength: featureDataset.sequenceLength,
     horizonWindows: featureDataset.horizonWindows,
     featureNames: featureDataset.featureNames,

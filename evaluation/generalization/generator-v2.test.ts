@@ -36,6 +36,12 @@ describe('M4.5 independent generalization dataset', () => {
     expect([...knownMechanisms].sort()).toEqual(['A', 'B', 'C']);
     expect([...holdoutMechanisms].sort()).toEqual(['D', 'E', 'F', 'G', 'H', 'I', 'J']);
     expect([...knownMechanisms].some((mechanism) => holdoutMechanisms.has(mechanism))).toBe(false);
+    expect(dataset.truth.scenarioFamilies).toEqual({
+      TRAIN: ['A', 'B', 'C'],
+      VALIDATION: ['A', 'B', 'C'],
+      SHIFTED_TEST: ['D', 'E', 'F'],
+      STRESS_TEST: ['G', 'H', 'I', 'J'],
+    });
   });
 
   it('provides enough merchant-disjoint scenario coverage for an informative test', () => {
