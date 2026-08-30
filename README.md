@@ -86,6 +86,26 @@ We tested a small GRU and did not promote it: the original perfect F1 concealed
 weak useful lead time and calibration. The simpler logistic model offered the
 better evidence-to-complexity tradeoff. See [docs/ai-design.md](docs/ai-design.md).
 
+### Recovery state machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> DETECTED
+    DETECTED --> SCORED
+    SCORED --> POLICY_APPROVED
+    SCORED --> ABSTAINED
+    SCORED --> REJECTED
+    POLICY_APPROVED --> AWAITING_MERCHANT_APPROVAL
+    AWAITING_MERCHANT_APPROVAL --> APPROVED
+    AWAITING_MERCHANT_APPROVAL --> REJECTED
+    AWAITING_MERCHANT_APPROVAL --> EXPIRED
+    APPROVED --> EXECUTING
+    EXECUTING --> PENDING_VERIFICATION
+    PENDING_VERIFICATION --> RECOVERED
+    PENDING_VERIFICATION --> FAILED
+    PENDING_VERIFICATION --> EXPIRED
+```
+
 ## Recovery Workflow
 
 The recovery semantic is:
@@ -101,23 +121,31 @@ deterministic.
 
 ## Safety Model
 
-- Simulation is the default executor.
-- Razorpay execution requires explicit `rzp_test_` credentials.
-- The policy engine owns amount, value, confidence, expiry and attempt limits.
-- Merchant approval is required before execution.
-- SHA-256 idempotency keys prevent duplicate actions, including concurrent
-  identical submissions.
-- Pending, failed, expired and already-recovered outcomes do not count as
-  recovered value.
-- The LLM has no payment tool, approval field, policy field or executor command.
-- Unsafe or unavailable LLM output falls back deterministically.
+| Layer        | Protection                                           |
+| ------------ | ---------------------------------------------------- |
+| Model        | Recommendation only                                  |
+| Policy       | Deterministic limits and stopping rules              |
+| Approval     | Explicit merchant authorization                      |
+| Executor     | One bounded action                                   |
+| Idempotency  | Duplicate prevention, including concurrent replay    |
+| Verification | Only verified payment status and `amount_paid` count |
+| Audit        | Full decision and outcome trail                      |
+| LLM          | Explanation only; no payment authority               |
 
-## Evaluation
+Simulation is the default executor. Razorpay execution requires explicit
+`rzp_test_` credentials. Pending, failed, expired and already-recovered
+outcomes do not count as recovered value.
+
+## Evaluation Evidence
+
+### M4.5 — detection model selection
 
 M4.5 evaluates temporal degradation detection on synthetic, merchant-disjoint
 and shifted holdouts. It does not establish production accuracy or broad
 generalization. The GRU result is retained as an engineering warning rather
 than hidden.
+
+### M6 — opportunity ranking
 
 M6 evaluates opportunity ranking under an explicit synthetic response model.
 The hidden counterfactual outcome is unavailable to the scorer; both strategies
@@ -151,17 +179,12 @@ Requirements: Node.js 22+ and npm 11+.
 
 ```bash
 npm install
-npm run dev:api
+npm run dev
 ```
 
-In a second terminal:
-
-```bash
-npm run dev:web
-```
-
-Open the Vite URL shown in the terminal. The API health check is
-`http://localhost:3001/health`.
+This starts the API and Vite Control Tower together. Open the Vite URL shown in
+the terminal. The API health check is `http://localhost:3001/health`. To run
+them independently, use `npm run dev:api` and `npm run dev:web`.
 
 ### Judge flow
 
@@ -188,11 +211,16 @@ malformed LLM output, provider unavailability and prompt-injection text.
 
 ## Tech Stack
 
-- TypeScript, React, Vite and Fastify
-- Zod contracts for domain, API and explanation boundaries
-- Deterministic logistic/temporal evaluation experiments
-- Simulation executor with an isolated Razorpay TEST MODE adapter
-- Vitest, Testing Library, ESLint and Prettier
+| Area                  | Technology                                          |
+| --------------------- | --------------------------------------------------- |
+| Frontend              | React + Vite + TypeScript                           |
+| Backend               | Fastify + TypeScript                                |
+| Domain and validation | Zod contracts                                       |
+| Testing               | Vitest + Testing Library                            |
+| ML                    | Logistic regression and temporal feature evaluation |
+| Evaluation            | Seeded M2–M6 synthetic protocols                    |
+| Razorpay integration  | Isolated TEST MODE Payment Links adapter            |
+| Quality               | ESLint + Prettier                                   |
 
 ## Repository Structure
 
